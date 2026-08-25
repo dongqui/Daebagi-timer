@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:catodo/features/presentation/viewmodels/timer_state.dart';
-import 'package:catodo/features/presentation/views/dashboard/dashboard.dart';
 import 'package:catodo/widgets/full_screen_overlay.dart';
-import 'package:catodo/features/presentation/views/character_selectors.dart';
 import 'package:catodo/features/presentation/viewmodels/characater_state.dart';
 import 'package:catodo/features/presentation/views/overlays/settings/settings.dart';
 
@@ -15,39 +13,33 @@ class HomeOverlay extends StatefulWidget {
 
 class HomeOverlayState extends State<HomeOverlay>
     with SingleTickerProviderStateMixin {
-  bool _isDashboardOpen = false;
-  bool _isCharacterSelectorsOpen = false;
+  bool _isSettingsOpen = false;
 
   @override
   void initState() {
     super.initState();
-    // 애니메이션 관련 초기화 제거
-    // CharacterManager.instance.initSelectedCharacter();
     CharacterManager.instance.initSelectedCharacter();
+    TimerManager.instance.addListenerToStatus(_onTimerStatusChanged);
   }
 
   @override
   void dispose() {
-    // 애니메이션 컨트롤러 dispose 제거
-    // _settingsAnimController.dispose();
+    TimerManager.instance.removeListenerToStatus(_onTimerStatusChanged);
     super.dispose();
   }
 
-  void _toggleDashboard() {
-    setState(() {
-      _isDashboardOpen = !_isDashboardOpen;
-    });
+  void _onTimerStatusChanged(TimerStatus status) {
+    if (status == TimerStatus.idle &&
+        TimerManager.instance.openSettingsOnIdle) {
+      TimerManager.instance.openSettingsOnIdle = false;
+      setState(() => _isSettingsOpen = true);
+    }
   }
 
-  void _toggleCharacterSelectors() {
+  void _toggleSettings() {
     setState(() {
-      _isCharacterSelectorsOpen = !_isCharacterSelectorsOpen;
+      _isSettingsOpen = !_isSettingsOpen;
     });
-  }
-
-  void _onSettingsTap() async {
-    // 애니메이션 효과 제거, 바로 캐릭터 선택창 토글
-    _toggleCharacterSelectors();
   }
 
   @override
@@ -59,12 +51,11 @@ class HomeOverlayState extends State<HomeOverlay>
             onTap: () => TimerManager.instance.setFocus(),
           ),
         ),
-        // 설정 버튼 (오른쪽 상단)
         Positioned(
           top: 20,
           right: 20,
           child: GestureDetector(
-            onTap: _onSettingsTap,
+            onTap: _toggleSettings,
             child: Container(
               width: 44,
               height: 44,
@@ -72,7 +63,7 @@ class HomeOverlayState extends State<HomeOverlay>
                 shape: BoxShape.circle,
                 color: Colors.white.withOpacity(0.1),
               ),
-              child: Center(
+              child: const Center(
                 child: Icon(
                   Icons.menu,
                   color: Colors.white,
@@ -82,23 +73,17 @@ class HomeOverlayState extends State<HomeOverlay>
             ),
           ),
         ),
-        // if (_isDashboardOpen)
-        //   FullScreenOverlay(
-        //     onClose: _toggleDashboard,
-        //     child: (context, onClose) => Dashboard(), // 대시보드 위젯을 여기에 추가하세요.
-        //   ),
-        if (!_isCharacterSelectorsOpen)
+        if (_isSettingsOpen)
           FullScreenOverlay(
-            onClose: _toggleCharacterSelectors,
+            onClose: _toggleSettings,
             backgroundColor: Colors.black,
-            child: (context, onClose) => SettingsOverlay(),
+            child: (context, onClose) => const SettingsOverlay(),
           ),
       ],
     );
   }
 }
 
-// 파일 하단에 커스텀 버튼 위젯 추가
 class _ShuttleWaveButton extends StatefulWidget {
   final VoidCallback onTap;
   const _ShuttleWaveButton({required this.onTap});
@@ -136,7 +121,6 @@ class _ShuttleWaveButtonState extends State<_ShuttleWaveButton>
         child: Stack(
           alignment: Alignment.center,
           children: [
-            // Halo/Wave 효과 (3겹)
             ...List.generate(3, (i) {
               final delay = i * 0.33;
               return AnimatedBuilder(
@@ -156,20 +140,11 @@ class _ShuttleWaveButtonState extends State<_ShuttleWaveButton>
                 },
               );
             }),
-            // 중앙 버튼 (shuttle 이미지)
             Container(
               width: 44,
               height: 44,
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 shape: BoxShape.circle,
-                // color: Colors.grey[700],
-                // boxShadow: [
-                //   BoxShadow(
-                //     color: Colors.grey[700]!.withOpacity(0.25),
-                //     blurRadius: 16,
-                //     spreadRadius: 2,
-                //   ),
-                // ],
               ),
               child: Center(
                 child: Image.asset(

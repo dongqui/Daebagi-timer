@@ -1,10 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:catodo/features/presentation/viewmodels/timer_state.dart';
-import 'package:catodo/features/presentation/views/discovery_progress.dart';
-
-import 'package:catodo/features/presentation/viewmodels/discovery_state.dart';
-import 'package:catodo/features/presentation/views/overlays/progress_state.dart';
-import 'package:catodo/features/presentation/viewmodels/characater_state.dart';
 import 'package:catodo/features/presentation/viewmodels/form_state.dart';
 
 class FocusEndOverlay extends StatefulWidget {
@@ -14,61 +9,114 @@ class FocusEndOverlay extends StatefulWidget {
   State<FocusEndOverlay> createState() => _FocusEndOverlayState();
 }
 
-class _FocusEndOverlayState extends ProgressState<FocusEndOverlay> {
-  double? _addedProgress;
+class _FocusEndOverlayState extends State<FocusEndOverlay> {
+  bool _isSaving = true;
 
   @override
   void initState() {
     super.initState();
-    saveData();
+    _saveSession();
   }
 
-  saveData() async {
-    int focussedTime = TimerManager.instance.state.focussedTime;
-    int sessionId = await FormManager.instance.save(focussedTime);
+  Future<void> _saveSession() async {
+    final focussedTime = TimerManager.instance.state.focussedTime;
+    await FormManager.instance.save(focussedTime);
+    if (mounted) {
+      setState(() => _isSaving = false);
+    }
+  }
 
-    await DiscoveryManager.instance.addSession(sessionId);
-    setState(() {
-      _addedProgress = focussedTime.toDouble();
-    });
+  String _formatDuration(int seconds) {
+    final minutes = seconds ~/ 60;
+    final remainingSeconds = seconds % 60;
+    if (minutes > 0) {
+      return '$minutes분 $remainingSeconds초';
+    }
+    return '$remainingSeconds초';
   }
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        Container(
-          color: Colors.black,
-          width: double.infinity,
-          height: double.infinity,
-        ),
-        if (CharacterManager.instance.state.selectedCharacter != null &&
-            DiscoveryManager.instance.state.planet != null)
-          DiscoveryProgress(
-            addedProgress:
-                _addedProgress != null ? calcProgress(_addedProgress!) : null,
-            progress: getProgress(),
-            travelerImage:
-                CharacterManager.instance.state.selectedCharacter!.idleSprite,
-            planetImage: DiscoveryManager.instance.state.planet!.url,
+    final focussedTime = TimerManager.instance.state.focussedTime;
+
+    return Container(
+      color: Colors.black,
+      width: double.infinity,
+      height: double.infinity,
+      child: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 32),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Text(
+                '집중 완료!',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                _formatDuration(focussedTime),
+                style: TextStyle(
+                  color: Colors.white.withOpacity(0.7),
+                  fontSize: 18,
+                ),
+              ),
+              const SizedBox(height: 48),
+              if (_isSaving)
+                const CircularProgressIndicator(color: Colors.white)
+              else ...[
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () => TimerManager.instance.goToStats(),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: Colors.black,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: const Text(
+                      '통계 보기',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton(
+                    onPressed: () => TimerManager.instance.save(),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.white,
+                      side: const BorderSide(color: Colors.white54),
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: const Text(
+                      '다른 TODO 만들기',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ],
           ),
-        Positioned(
-          bottom: 200,
-          left: 0,
-          right: 0,
-          child: ElevatedButton(
-            onPressed: () {
-              TimerManager.instance.save();
-            },
-            style: ElevatedButton.styleFrom(
-              shape: const CircleBorder(),
-              padding: const EdgeInsets.all(24),
-              backgroundColor: Colors.white,
-            ),
-            child: const Text('계속', style: TextStyle(color: Colors.black)),
-          ),
         ),
-      ],
+      ),
     );
   }
 }

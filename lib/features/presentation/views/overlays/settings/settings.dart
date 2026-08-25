@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import 'package:catodo/features/presentation/views/overlays/settings/character_setting.dart';
-import 'package:catodo/features/presentation/views/overlays/settings/discoveries_setting.dart';
 import 'package:catodo/features/presentation/views/dashboard/dashboard.dart';
 import 'package:catodo/features/presentation/views/overlays/settings/setting_card.dart';
 
@@ -30,10 +29,6 @@ class _SettingsOverlayState extends State<SettingsOverlay> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           SettingCard(child: CharacterSettingOverlay()),
-          const SizedBox(height: 16),
-          SettingCard(
-            child: DiscoveriesSetting(),
-          ),
           const SizedBox(height: 16),
           SettingCard(child: Dashboard()),
         ],

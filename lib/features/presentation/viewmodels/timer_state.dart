@@ -42,6 +42,7 @@ class TimerManager {
   late Timer _timer;
   TimerState _state;
   late TimerStatus _prevStatus = TimerStatus.idle;
+  bool openSettingsOnIdle = false;
 
   final List<void Function(TimerState)> _listeners = [];
   final List<void Function(TimerStatus)> _listenersToStatus = [];
@@ -61,6 +62,10 @@ class TimerManager {
 
   void addListenerToStatus(void Function(TimerStatus) listener) {
     _listenersToStatus.add(listener);
+  }
+
+  void removeListenerToStatus(void Function(TimerStatus) listener) {
+    _listenersToStatus.remove(listener);
   }
 
   void removeListener(void Function(TimerState) listener) {
@@ -104,7 +109,17 @@ class TimerManager {
     ));
   }
 
+  void goToStats() {
+    openSettingsOnIdle = true;
+    _updateState(_state.copyWith(
+      status: TimerStatus.idle,
+      focussedTime: 0,
+      goalTime: DEFAULT_WORK_TIME,
+    ));
+  }
+
   void cancel() {
+    openSettingsOnIdle = false;
     _updateState(_state.copyWith(status: TimerStatus.idle));
   }
 
