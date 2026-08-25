@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:catodo/core/utils/asset_path.dart';
 import 'package:catodo/features/presentation/viewmodels/discovery_state.dart';
 import 'package:flame/widgets.dart';
 import 'package:flame/sprite.dart';
@@ -74,7 +75,7 @@ class _DiscoveriesSettingState extends State<DiscoveriesSetting> {
                     child: SizedBox(
                       width: 128,
                       height: 128,
-                      child: Image.asset(entry.value.url),
+                      child: Image.asset(assetImagePath(entry.value.url)),
                     ),
                   );
                 }),

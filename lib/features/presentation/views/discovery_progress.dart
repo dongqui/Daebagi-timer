@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:catodo/core/utils/asset_path.dart';
 import 'package:catodo/widgets/progressbar.dart';
 
 class _ProgressMessage {
@@ -86,7 +87,7 @@ class _DiscoveryProgressState extends State<DiscoveryProgress> {
                 children: [
                   // 행성 이미지 (아래)
                   Image.asset(
-                    'assets/images/${widget.planetImage}',
+                    assetImagePath(widget.planetImage),
                     width: planetSize,
                     height: planetSize,
                     fit: BoxFit.cover,
@@ -102,42 +103,46 @@ class _DiscoveryProgressState extends State<DiscoveryProgress> {
                 ],
               ),
             ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                // 왼쪽: 여행자 이미지
-                Image.asset(
-                  'assets/images/${widget.travelerImage}',
-                  width: 32,
-                  height: 32,
-                ),
-                const SizedBox(width: 16),
-                // 가운데: 프로그레스바와 텍스트
-                Column(
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final progressWidth =
+                    (constraints.maxWidth - 96).clamp(120.0, 256.0);
+                return Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    const Text(''),
-                    CustomPaint(
-                      size: const Size(256, 20),
-                      painter: ProgressBarPainter(progress: animatedProgress),
+                    Image.asset(
+                      assetImagePath(widget.travelerImage),
+                      width: 32,
+                      height: 32,
                     ),
-                    Text(
-                      '${(animatedProgress * 100).toStringAsFixed(animatedProgress < 0.1 ? 2 : 1)}%',
-                      style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold),
+                    const SizedBox(width: 16),
+                    Column(
+                      children: [
+                        const Text(''),
+                        CustomPaint(
+                          size: Size(progressWidth, 20),
+                          painter:
+                              ProgressBarPainter(progress: animatedProgress),
+                        ),
+                        Text(
+                          '${(animatedProgress * 100).toStringAsFixed(animatedProgress < 0.1 ? 2 : 1)}%',
+                          style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(width: 16),
+                    Image.asset(
+                      assetImagePath('planet.png'),
+                      width: 32,
+                      height: 32,
                     ),
                   ],
-                ),
-                const SizedBox(width: 16),
-                // 오른쪽: 행성 이미지(작은 아이콘)
-                Image.asset(
-                  'assets/images/planet.png',
-                  width: 32,
-                  height: 32,
-                ),
-              ],
+                );
+              },
             ),
             const SizedBox(height: 4),
             Text(

@@ -1,10 +1,10 @@
 final defaultPlanets = [
   Planet(
-      id: 1, name: '', url: 'planets/premium/p_planet_1.png', isPremium: true),
+      id: 1, name: '', url: 'planets/premium/p_planet_1.gif', isPremium: true),
   Planet(
-      id: 2, name: '', url: 'planets/premium/p_planet_2.png', isPremium: true),
+      id: 2, name: '', url: 'planets/premium/p_planet_2.gif', isPremium: true),
   Planet(
-      id: 3, name: '', url: 'planets/premium/p_planet_3.png', isPremium: true),
+      id: 3, name: '', url: 'planets/premium/p_planet_3.gif', isPremium: true),
 ];
 
 class Planet {
