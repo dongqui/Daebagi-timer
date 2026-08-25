@@ -145,10 +145,9 @@ class _TimerOverlayState extends State<TimerOverlay> {
         top: audioBoxPositionY,
         left: 5,
         width: 260,
-        height: 302,
         child: Offstage(
           offstage: !_isAudioBoxVisible,
-          child: AudioBox(),
+          child: const AudioBox(),
         ),
       ),
     ]);

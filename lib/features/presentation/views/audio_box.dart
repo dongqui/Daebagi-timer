@@ -30,108 +30,79 @@ class _AudioBoxState extends State<AudioBox> {
 
   @override
   void dispose() {
-    super.dispose();
-
     audioController.dispose();
+    super.dispose();
   }
-
-  bool isMusicOn = false;
 
   initAudioList() async {
     await AudioManager.instance.getAudioList();
-    setState(() {});
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Color(0xFF0D1B2A).withValues(alpha: 0.9),
+        color: const Color(0xFF0D1B2A).withValues(alpha: 0.9),
         borderRadius: BorderRadius.circular(16.0),
       ),
       padding: const EdgeInsets.all(16.0),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Background Music',
-            style: TextStyle(
-                color: Color(0xFFFFFFFF),
-                fontSize: 20,
-                fontWeight: FontWeight.w600),
-          ),
-
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text('음악 켜기/끄기',
-                  style: TextStyle(
-                      color: Color(0xFFFFFFFF),
-                      fontSize: 16,
-                      fontWeight: FontWeight.w400)),
-              Switch(
-                value: isMusicOn,
-                onChanged: (bool value) {
-                  setState(() {
-                    isMusicOn = value;
-                  });
-                },
-                activeColor: Color(0xFF3A86FF),
-                thumbColor: WidgetStateProperty.all(Color(0xFFFFFFFF)),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          const Divider(
-            color: Color(0x80FFFFFF),
-            height: 16,
-          ),
-          const SizedBox(height: 8),
-          Text(
+          const Text(
             'White noise',
             style: TextStyle(
-                color: Color(0xFFFFFFFF),
-                fontSize: 20,
-                fontWeight: FontWeight.w600),
+              color: Color(0xFFFFFFFF),
+              fontSize: 20,
+              fontWeight: FontWeight.w600,
+            ),
           ),
-          // 백색 소음 체크박스
-
-          const SizedBox(height: 8),
+          const SizedBox(height: 12),
           Wrap(
-            spacing: 32,
-            runSpacing: 16,
+            spacing: 24,
+            runSpacing: 12,
             children: audioList.map((AudioType type) {
-              return Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    type.name,
-                    style: TextStyle(
+              return SizedBox(
+                width: 64,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      type.name,
+                      style: const TextStyle(
                         color: Color(0xFFFFFFFF),
-                        fontSize: 16,
-                        fontWeight: FontWeight.w400),
-                  ),
-                  const SizedBox(height: 8),
-                  Checkbox(
-                    activeColor: Color(0xFF3A86FF),
-                    visualDensity: VisualDensity(horizontal: -4, vertical: -4),
-                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    value: AudioManager.instance.state.whiteNoise
-                        .contains(type.name),
-                    onChanged: (bool? value) {
-                      setState(() {
-                        AudioManager.instance
-                            .updateWhiteNoise(type.name, value ?? false);
+                        fontSize: 14,
+                        fontWeight: FontWeight.w400,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 4),
+                    Checkbox(
+                      activeColor: const Color(0xFF3A86FF),
+                      visualDensity:
+                          VisualDensity.compact,
+                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      value: AudioManager.instance.state.whiteNoise
+                          .contains(type.name),
+                      onChanged: (bool? value) {
+                        setState(() {
+                          AudioManager.instance
+                              .updateWhiteNoise(type.name, value ?? false);
 
-                        if (value == true) {
-                          audioController.play(type);
-                        } else {
-                          audioController.stop(type);
-                        }
-                      });
-                    },
-                  ),
-                ],
+                          if (value == true) {
+                            audioController.play(type);
+                          } else {
+                            audioController.stop(type);
+                          }
+                        });
+                      },
+                    ),
+                  ],
+                ),
               );
             }).toList(),
           ),

@@ -40,7 +40,6 @@ class _MyAppState extends State<MyApp> {
     try {
       await initDB();
       await initVersion();
-      await versionCheck();
     } catch (e, st) {
       debugPrint('앱 초기화 실패: $e\n$st');
     } finally {
