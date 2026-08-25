@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:catodo/core/observer.dart';
 import 'package:catodo/features/data/repositories/audio_repository.dart';
 import 'package:catodo/features/data/models/audio_model.dart';
@@ -70,12 +72,12 @@ class AudioManager extends Observer<AudioState> {
   }
 
   void updateWhiteNoise(String key, bool value) {
-    if (value == true) {
-      updateAudio(whiteNoise: [..._state.whiteNoise, key]);
-    } else {
-      updateAudio(
-          whiteNoise: _state.whiteNoise.where((e) => e != key).toList());
-    }
+    final whiteNoise = value
+        ? [..._state.whiteNoise, key]
+        : _state.whiteNoise.where((e) => e != key).toList();
+
+    _updateState(_state.copyWith(whiteNoise: whiteNoise));
+    unawaited(updateAudio(whiteNoise: whiteNoise));
   }
 
   void _updateState(AudioState state) {

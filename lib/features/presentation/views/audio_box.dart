@@ -21,6 +21,7 @@ class _AudioBoxState extends State<AudioBox> {
   void initState() {
     super.initState();
     initAudioList();
+    audioController.preload(audioList);
   }
 
   @override
@@ -84,16 +85,16 @@ class _AudioBoxState extends State<AudioBox> {
                       value: AudioManager.instance.state.whiteNoise
                           .contains(type.name),
                       onChanged: (bool? value) {
-                        setState(() {
-                          AudioManager.instance
-                              .updateWhiteNoise(type.name, value ?? false);
+                        final checked = value ?? false;
+                        AudioManager.instance
+                            .updateWhiteNoise(type.name, checked);
+                        setState(() {});
 
-                          if (value == true) {
-                            audioController.play(type);
-                          } else {
-                            audioController.stop(type);
-                          }
-                        });
+                        if (checked) {
+                          audioController.play(type);
+                        } else {
+                          audioController.stop(type);
+                        }
                       },
                     ),
                   ],
