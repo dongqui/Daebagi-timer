@@ -39,11 +39,15 @@ flutter:
   uses-material-design: true
   assets:
     - .env
-    - assets/tiles/
-    - assets/images/
-    - assets/images/parallax/
-    - assets/images/planets/
-    - assets/images/planets/premium/
+    # 홈/타이머 Flame + UI에 실제로 쓰는 이미지만 포함 (와일드카드 assets/images/ 사용 안 함)
     - assets/images/characters/
     - assets/images/icons/
+    - assets/images/parallax/
+    - assets/images/planet.png
+    - assets/images/flowstar_left.png
+    - assets/images/flowstar_right.png
+    - assets/images/star_1.png
+    - assets/images/star_2.png
+    - assets/images/star_2_5.png
+    - assets/images/star_3.png
     - assets/sounds/

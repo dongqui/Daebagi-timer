@@ -5,11 +5,6 @@ import 'package:catodo/features/presentation/viewmodels/audio_controller.dart';
 final List<AudioType> audioList = [
   AudioType.rain,
   AudioType.birds,
-  AudioType.forest,
-  AudioType.ocean,
-  AudioType.wind,
-  AudioType.fire,
-  AudioType.thunder,
 ];
 
 class AudioBox extends StatefulWidget {
