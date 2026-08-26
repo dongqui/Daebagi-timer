@@ -18,12 +18,12 @@
 
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="A new Flutter project.">
+  <meta name="description" content="대박이와 함께 집중하는 타이머">
 
   <!-- iOS meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="catodo">
+  <meta name="apple-mobile-web-app-title" content="대박이 타이머">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
 
   <!-- Favicon -->
@@ -33,16 +33,15 @@
   <link rel="manifest" href="manifest.json">
 
   <!--
-    Flutter 엔진이 첫 프레임을 그리기 전까지 브라우저는 이 문서를 그대로 보여준다.
-    아무것도 없으면 그동안 흰 화면이 뜬다. 그래서 인트로 화면을 정적 HTML로
-    똑같이 한 벌 그려두고, Dart가 첫 프레임을 그린 뒤 크로스페이드로 넘긴다.
+    이 화면이 앱의 인트로다. Dart 쪽에는 대응하는 화면이 없다.
 
-    수치는 lib/features/presentation/views/splash_screen.dart와 맞춰져 있다.
-    한쪽만 고치면 넘어가는 순간에 위치가 튀므로 같이 고칠 것.
+    Flutter 엔진이 첫 프레임을 그리기 전까지 브라우저는 이 문서를 그대로 보여준다.
+    예전에는 같은 그림을 Dart에도 한 벌 두고 넘겼는데, 두 화면의 경계에서
+    깜빡였다. 지금은 한 장으로 두고 홈이 준비될 때까지 덮어둔 뒤 걷어낸다.
 
     별 배경은 이미지를 쓰지 않고 그라디언트로만 근사한다. parallax PNG 세 장은
     합쳐서 1MB에 가까워, 부팅을 빠르게 보이려고 넣은 화면이 오히려 부팅을
-    늦추게 된다. 성기게 흩어진 별은 크로스페이드 중에 자연스럽게 나타난다.
+    늦추게 된다. 성기게 흩어진 별은 홈으로 넘어갈 때 페이드와 함께 나타난다.
   -->
   <link rel="preload" as="image" href="assets/assets/images/dog_cutout.webp">
   <style>
@@ -60,7 +59,7 @@
       justify-content: center;
       /* SpaceBackdrop의 RadialGradient(center: (0,-0.35), radius: 1.1) 근사 */
       background: radial-gradient(circle at 50% 32%, #14141c 0%, #000000 78%);
-      transition: opacity 220ms ease;
+      transition: opacity 320ms ease;
       pointer-events: none;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
         'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif;
@@ -114,24 +113,22 @@
   </div>
 
   <script>
-    // 등장 연출 길이. 위 #boot 애니메이션과 같은 값이어야 한다.
-    var BOOT_RISE_MS = 700;
+    // 인트로가 최소한 이만큼은 보인다. 등장 연출(700ms)보다 길어야 하고,
+    // 초기화가 순식간에 끝나도 화면이 깜빡이고 마는 걸 막는다.
+    var BOOT_MIN_MS = 1800;
+    var BOOT_FADE_MS = 320;
 
-    // Dart 쪽에서 첫 프레임을 그린 뒤 호출한다 (lib/core/boot_screen.dart).
-    //
-    // 곧바로 지우지 않고 겹친 채로 흐려지게 해서, 폰트 렌더링 차이 같은 자잘한
-    // 어긋남이 눈에 띄지 않게 한다. 등장 연출이 아직 진행 중이면 그게 끝날 때까지
-    // 기다린다 — 올라오는 도중에 걷어내면 Dart 쪽 캐릭터는 이미 제자리에 있어서
-    // 한 번 튄다.
+    // 홈 화면이 준비된 뒤 Dart가 호출한다 (lib/core/boot_screen.dart).
+    // 이 화면이 곧 인트로라, 걷어내는 순간이 곧 홈으로 넘어가는 순간이다.
     window.hideBootScreen = function () {
       var el = document.getElementById('boot');
       if (!el) return;
 
-      var remaining = Math.max(0, BOOT_RISE_MS - performance.now());
+      var wait = Math.max(0, BOOT_MIN_MS - performance.now());
       setTimeout(function () {
         el.style.opacity = '0';
-        setTimeout(function () { el.remove(); }, 240);
-      }, remaining);
+        setTimeout(function () { el.remove(); }, BOOT_FADE_MS);
+      }, wait);
     };
   </script>
 

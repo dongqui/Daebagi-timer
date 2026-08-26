@@ -41,7 +41,8 @@ flutter:
     - assets/images/icons/
     - assets/images/parallax/
     - assets/images/planet.png
-    # 인트로 화면 캐릭터. 원본 dog_photo_cutout-v2.png는 번들에 넣지 않는다.
+    # 인트로 화면 캐릭터. web/index.html이 assets/assets/images/ 경로로 직접 참조하므로
+    # Dart에서 안 쓰더라도 등록해 둬야 빌드 산출물에 복사된다.
     - assets/images/dog_cutout.webp
     - assets/images/flowstar_left.png
     - assets/images/flowstar_right.png
