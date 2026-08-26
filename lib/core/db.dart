@@ -22,9 +22,6 @@ import 'package:catodo/features/data/models/discovery.dart';
 import 'package:catodo/features/data/models/planet.dart';
 import 'package:catodo/features/data/datasources/planet_datasource.dart';
 import 'package:catodo/features/data/repositories/planet_repository.dart';
-import 'package:catodo/features/data/models/resource_version.dart';
-import 'package:catodo/features/data/datasources/resource_version_datasource.dart';
-import 'package:catodo/features/data/repositories/resource_version_repository.dart';
 
 /// 저장소 조립 지점.
 ///
@@ -107,15 +104,6 @@ class DatabaseService {
       getId: (item) => item.id,
       setId: (item, id) => item.id = id,
     );
-    final resourceVersionStore = DocumentStore<ResourceVersion>(
-      backend: backend,
-      collection: 'resourceVersions',
-      toJson: (item) => item.toJson(),
-      fromJson: ResourceVersion.fromJson,
-      getId: (item) => item.id,
-      setId: (item, id) => item.id = id,
-    );
-
     // datasource를 만들기 전에 메모리 캐시를 채운다.
     await Future.wait([
       focusSessionStore.load(),
@@ -125,7 +113,6 @@ class DatabaseService {
       selectedCharacterStore.load(),
       discoveryStore.load(),
       planetStore.load(),
-      resourceVersionStore.load(),
     ]);
 
     // datasource
@@ -139,8 +126,6 @@ class DatabaseService {
     final discoveryDataSource =
         DiscoveryDataSource(discoveryStore, planetStore);
     final planetDataSource = PlanetDataSource(planetStore);
-    final resourceVersionDataSource =
-        ResourceVersionDataSource(resourceVersionStore);
 
     // repository
     FocusSessionRepository.initialize(focusSessionDataSource);
@@ -150,6 +135,5 @@ class DatabaseService {
     SelectedCharacterRepository.initialize(selectedCharacterDataSource);
     DiscoveryRepository.initialize(discoveryDataSource);
     PlanetRepository.initialize(planetDataSource);
-    ResourceVersionRepository.initialize(resourceVersionDataSource);
   }
 }

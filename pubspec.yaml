@@ -25,8 +25,6 @@ dependencies:
   # cloud_functions: ^5.6.1
   # google_sign_in: ^7.1.1
   # sign_in_with_apple: ^7.0.1
-  flutter_dotenv: ^5.2.1
-  http: ^1.4.0
   shared_preferences: ^2.3.3
 
 dev_dependencies:
@@ -38,13 +36,12 @@ flutter:
   generate: true
   uses-material-design: true
   assets:
-    - .env
     # 홈/타이머 Flame + UI에 실제로 쓰는 이미지만 포함 (와일드카드 assets/images/ 사용 안 함)
     - assets/images/characters/
     - assets/images/icons/
     - assets/images/parallax/
     - assets/images/planet.png
-    # 인트로 화면 캐릭터. 원본 dog_photo_cutout.png는 알파가 없어 번들에 넣지 않는다.
+    # 인트로 화면 캐릭터. 원본 dog_photo_cutout-v2.png는 번들에 넣지 않는다.
     - assets/images/dog_cutout.webp
     - assets/images/flowstar_left.png
     - assets/images/flowstar_right.png

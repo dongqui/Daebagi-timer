@@ -6,7 +6,6 @@ import 'package:catodo/features/data/models/discovery.dart';
 import 'package:catodo/features/data/models/focus_session_model.dart';
 import 'package:catodo/features/data/models/latest-activity-model.dart';
 import 'package:catodo/features/data/models/planet.dart';
-import 'package:catodo/features/data/models/resource_version.dart';
 import 'package:catodo/features/data/models/selected_character.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -147,18 +146,5 @@ void main() {
     expect(restored.name, '독서');
     expect(restored.timestamp, DateTime(2026, 8, 1, 9));
     expect(restored.hasDeleted, isTrue);
-  });
-
-  test('ResourceVersion은 id를 포함해 왕복한다', () {
-    final original = ResourceVersion(
-      version: 12,
-      checkedAt: DateTime(2026, 8, 10, 12),
-    )..id = 1;
-
-    final restored = roundTrip(original.toJson, ResourceVersion.fromJson);
-
-    expect(restored.id, 1);
-    expect(restored.version, 12);
-    expect(restored.checkedAt, DateTime(2026, 8, 10, 12));
   });
 }
