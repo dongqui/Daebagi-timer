@@ -9,7 +9,6 @@ import 'package:catodo/theme/tds_colors.dart';
 import 'package:catodo/theme/tds_metrics.dart';
 import 'package:catodo/widgets/tds/tds_bottom_cta.dart';
 import 'package:catodo/widgets/tds/tds_button.dart';
-import 'package:catodo/widgets/tds/tds_icon_button.dart';
 import 'package:catodo/widgets/tds/tds_navigation.dart';
 
 /// 집중을 시작하기 전 무엇을·얼마나 할지 정하는 화면.
@@ -90,19 +89,9 @@ class _FocusFormState extends State<FocusForm>
       padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
       child: Column(
         children: [
-          TdsNavigation(
-            onBack: _dismissToHome,
-            leftItems: [
-              TdsIconButton(
-                icon: const Icon(Icons.bar_chart_rounded),
-                size: TdsIconButtonSize.l,
-                variant: TdsIconButtonVariant.clear,
-                color: TdsColors.onCanvasIcon,
-                semanticLabel: '기록 보기',
-                onPressed: () => TimerManager.instance.goToStats(),
-              ),
-            ],
-          ),
+          // 뒤로가기만 둔다. 기록은 홈 메뉴로 들어가는 자리라 여기서 또
+          // 열어줄 필요가 없었다.
+          TdsNavigation(onBack: _dismissToHome),
           Expanded(
             child: Align(
               alignment: Alignment.bottomCenter,

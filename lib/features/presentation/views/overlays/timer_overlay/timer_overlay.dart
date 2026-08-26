@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import 'package:catodo/core/utils/duration_format.dart';
@@ -29,6 +31,11 @@ class _TimerOverlayState extends State<TimerOverlay> {
   /// 패널이 아니라 화면이 들고 있다. 패널을 닫아도 소리는 계속 나야 한다.
   final AudioController _audioController = AudioController();
 
+  /// 타이머 등장 연출이 끝날 때까지 소리 예열을 미루는 시간.
+  static const _warmUpDelay = Duration(seconds: 2);
+
+  Timer? _warmUpTimer;
+
   late TimerState _timerState;
   bool _isAudioBoxVisible = false;
 
@@ -43,6 +50,7 @@ class _TimerOverlayState extends State<TimerOverlay> {
   @override
   void dispose() {
     _timerManager.removeListener(_handleTimerStateChanged);
+    _warmUpTimer?.cancel();
     _audioController.dispose();
     super.dispose();
   }
@@ -50,9 +58,9 @@ class _TimerOverlayState extends State<TimerOverlay> {
   /// 저장된 백색소음 선택을 실제 재생으로 이어준다.
   /// 이게 없으면 체크는 되어 있는데 소리는 안 나는 상태가 된다.
   ///
-  /// 켜져 있는 것만 불러온다. 예전에는 목록 전체를 미리 로드해서, 소리를 하나도
-  /// 안 켠 사람도 타이머 시작 직후 mp3 디코딩 때문에 화면이 끊겼다.
-  /// 나머지는 패널에서 체크할 때 `AudioController`가 알아서 불러온다.
+  /// 켜져 있는 것부터 불러온다. 목록 전체를 여기서 다 불러오면, 소리를 하나도
+  /// 안 켠 사람도 타이머 시작 직후 화면이 끊겼다. 나머지는 [_scheduleWarmUp]이
+  /// 잠잠해진 뒤에 배경에서 채운다.
   Future<void> _initAudio() async {
     await AudioManager.instance.getAudioList();
     if (!mounted) return;
@@ -60,13 +68,27 @@ class _TimerOverlayState extends State<TimerOverlay> {
     final selected = AudioManager.instance.state.whiteNoise;
     final active =
         whiteNoiseTypes.where((t) => selected.contains(t.name)).toList();
-    if (active.isEmpty) return;
 
-    await _audioController.preload(active);
-    if (!mounted) return;
-    for (final type in active) {
-      _audioController.play(type);
+    if (active.isNotEmpty) {
+      await _audioController.preload(active);
+      if (!mounted) return;
+      for (final type in active) {
+        _audioController.play(type);
+      }
     }
+
+    _scheduleWarmUp();
+  }
+
+  /// 아직 안 켠 소리를 배경에서 미리 불러둔다.
+  ///
+  /// 패널에서 체크하는 순간에 불러오면 그때 화면이 멈칫한다. 타이머가 막 뜬
+  /// 직후도 등장 연출이 도는 중이라 피하고, 조금 지나 잠잠해졌을 때 채운다.
+  void _scheduleWarmUp() {
+    _warmUpTimer?.cancel();
+    _warmUpTimer = Timer(_warmUpDelay, () {
+      if (mounted) _audioController.preload(whiteNoiseTypes);
+    });
   }
 
   void _handleTimerStateChanged(TimerState state) {

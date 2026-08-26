@@ -10,7 +10,6 @@ import 'package:catodo/theme/tds_colors.dart';
 import 'package:catodo/theme/tds_metrics.dart';
 import 'package:catodo/theme/tds_typography.dart';
 import 'package:catodo/widgets/tds/tds_button.dart';
-import 'package:catodo/widgets/tds/tds_icon_button.dart';
 import 'package:catodo/widgets/tds/tds_loader.dart';
 import 'package:catodo/widgets/tds/tds_navigation.dart';
 
@@ -129,16 +128,10 @@ class _CharacterSelectorsState extends State<CharacterSelectors> {
         else
           Column(
             children: [
-              TdsNavigation(
-                    leading: TdsIconButton(
-                  icon: const Icon(Icons.close_rounded),
-                  size: TdsIconButtonSize.l,
-                  variant: TdsIconButtonVariant.clear,
-                  color: TdsColors.onCanvasIcon,
-                  semanticLabel: '닫기',
-                  onPressed: widget.onClose,
-                ),
-              ),
+              // X는 토스가 오른쪽 위에서 이미 쓰고 있다. 왼쪽에 또 X를 두면
+              // 그것과 짝처럼 보여서 미니앱을 닫는 건지 화면을 닫는 건지
+              // 헷갈린다. 우리 쪽 화면은 전부 뒤로가기로 통일한다.
+              TdsNavigation(onBack: widget.onClose),
               Expanded(child: _buildCarousel(controller)),
               Text(
                 _selectedCharacter?.label ?? '',

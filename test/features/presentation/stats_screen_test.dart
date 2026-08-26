@@ -101,15 +101,15 @@ void main() {
 
       final nav = tester.getRect(find.byType(TdsNavigation));
 
-      // 내비게이션 줄에 남는 건 닫기뿐이고, 그마저 왼쪽에 붙어 있다.
-      expect(tester.getRect(find.bySemanticsLabel('닫기')).right,
+      // 내비게이션 줄에 남는 건 뒤로가기뿐이고, 그마저 왼쪽에 붙어 있다.
+      expect(tester.getRect(find.bySemanticsLabel('뒤로')).right,
           lessThan(375 / 2));
 
-      // 꾸미기는 오른쪽이지만 내비게이션 줄 아래(캐릭터 자리)로 내려가 있다.
+      // 캐릭터 선택은 오른쪽이지만 내비게이션 줄 아래(캐릭터 자리)로 내려가 있다.
       expect(
-        tester.getRect(find.bySemanticsLabel('캐릭터 꾸미기')).top,
+        tester.getRect(find.bySemanticsLabel('캐릭터 선택하기')).top,
         greaterThanOrEqualTo(nav.bottom),
-        reason: '꾸미기 칩은 토스 네비게이션 바 줄 아래에 있어야 한다',
+        reason: '선택하기 칩은 토스 네비게이션 바 줄 아래에 있어야 한다',
       );
     });
 
@@ -139,11 +139,11 @@ void main() {
       expect(tester.takeException(), isNull);
     });
 
-    testWidgets('닫기 버튼은 onClose를 부른다', (tester) async {
+    testWidgets('뒤로가기 버튼은 onClose를 부른다', (tester) async {
       var closed = false;
       await _pumpStats(tester, onClose: () => closed = true);
 
-      await tester.tap(find.bySemanticsLabel('닫기').first);
+      await tester.tap(find.bySemanticsLabel('뒤로').first);
       await _settleAsync(tester);
 
       expect(closed, isTrue);

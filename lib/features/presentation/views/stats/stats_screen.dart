@@ -83,16 +83,9 @@ class _StatsScreenState extends State<StatsScreen> {
             color: TdsColors.canvas,
             child: Column(
               children: [
-                TdsNavigation(
-                  leading: TdsIconButton(
-                    icon: const Icon(Icons.close_rounded),
-                    size: TdsIconButtonSize.l,
-                    variant: TdsIconButtonVariant.clear,
-                    color: TdsColors.onCanvasIcon,
-                    semanticLabel: '닫기',
-                    onPressed: widget.onClose,
-                  ),
-                ),
+                // 홈에서 들어와 홈으로 돌아가는 자리라 닫기(X)가 아니라
+                // 뒤로가기다. 집중 준비 화면과 같은 셰브론을 쓴다.
+                TdsNavigation(onBack: widget.onClose),
                 // 캐릭터만 놓고 배경은 검정으로 둔다. 별을 깔면 아래 차트
                 // 영역과 겹쳐 보여서 캐릭터가 묻힌다.
                 SizedBox(
@@ -101,12 +94,14 @@ class _StatsScreenState extends State<StatsScreen> {
                   child: Stack(
                     children: [
                       const Positioned.fill(child: CharacterSettingOverlay()),
-                      // 꾸미기는 내비게이션 바에서 여기로 내렸다. 바 오른쪽 끝은
-                      // 토스 더보기·닫기 자리라 우리 버튼을 둘 수 없다.
+                      // 캐릭터 선택은 내비게이션 바에서 여기로 내렸다. 바
+                      // 오른쪽 끝은 토스 더보기·닫기 자리라 쓸 수 없다.
                       Positioned(
                         right: 16,
                         bottom: 14,
-                        child: _DecorateChip(onPressed: _openCharacterSelectors),
+                        child: _PickCharacterChip(
+                          onPressed: _openCharacterSelectors,
+                        ),
                       ),
                     ],
                   ),
@@ -222,12 +217,12 @@ class _RangeSelector extends StatelessWidget {
   }
 }
 
-/// 캐릭터 자리 위에 얹는 "꾸미기" 칩.
+/// 캐릭터 자리 위에 얹는 캐릭터 선택 칩.
 ///
 /// 디자인의 TDS Chip(size S · pill · weak)을 옮겼다. 여기서만 쓰므로 공용
 /// 위젯으로 올리지 않는다 — 다른 화면에도 생기면 그때 tds/로 승격한다.
-class _DecorateChip extends StatelessWidget {
-  const _DecorateChip({required this.onPressed});
+class _PickCharacterChip extends StatelessWidget {
+  const _PickCharacterChip({required this.onPressed});
 
   final VoidCallback onPressed;
 
@@ -235,15 +230,15 @@ class _DecorateChip extends StatelessWidget {
   Widget build(BuildContext context) {
     return Semantics(
       button: true,
-      label: '캐릭터 꾸미기',
-      // 안쪽 '꾸미기' 텍스트까지 읽히면 라벨이 겹쳐 들린다.
+      label: '캐릭터 선택하기',
+      // 안쪽 '선택하기' 텍스트까지 읽히면 라벨이 겹쳐 들린다.
       excludeSemantics: true,
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: onPressed,
         child: Container(
           height: 32,
-          padding: const EdgeInsets.symmetric(horizontal: 12),
+          padding: const EdgeInsets.only(left: 14, right: 9),
           decoration: BoxDecoration(
             color: TdsColors.fillNeutralWeak,
             borderRadius: BorderRadius.circular(999),
@@ -251,10 +246,8 @@ class _DecorateChip extends StatelessWidget {
           child: const Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.edit_rounded, size: 16, color: TdsColors.onCanvasIcon),
-              SizedBox(width: 4),
               Text(
-                '꾸미기',
+                '선택하기',
                 style: TextStyle(
                   fontSize: 13,
                   height: 19.5 / 13,
@@ -262,6 +255,8 @@ class _DecorateChip extends StatelessWidget {
                   color: TdsColors.onCanvasIcon,
                 ),
               ),
+              SizedBox(width: 2),
+              TdsArrow(size: 16, color: TdsColors.onCanvasIcon),
             ],
           ),
         ),
