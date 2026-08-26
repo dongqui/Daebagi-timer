@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 
 import 'package:catodo/theme/tds_colors.dart';
@@ -41,7 +42,13 @@ class _SplashScreenState extends State<SplashScreen>
     duration: const Duration(milliseconds: 700),
   );
 
-  static const _minimumDwell = Duration(milliseconds: 1800);
+  /// 인트로를 최소한 이만큼은 보여준다.
+  ///
+  /// 웹에서는 `web/index.html`의 부트 화면이 같은 그림을 이미 한참 보여준 뒤라
+  /// 여기서 또 오래 붙잡으면 전체가 늘어진다. 넘어가는 티만 안 나면 된다.
+  static const _minimumDwell = kIsWeb
+      ? Duration(milliseconds: 500)
+      : Duration(milliseconds: 1800);
 
   Timer? _dwellTimer;
   bool _dwellElapsed = false;
@@ -50,7 +57,15 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   void initState() {
     super.initState();
-    _intro.forward();
+
+    // 웹은 부트 화면이 이미 등장 연출을 마친 상태로 넘겨준다. 한 번 더 재생하면
+    // 크로스페이드 도중에 캐릭터가 아래에서 다시 올라오며 튄다.
+    if (kIsWeb) {
+      _intro.value = 1;
+    } else {
+      _intro.forward();
+    }
+
     _dwellTimer = Timer(_minimumDwell, () {
       _dwellElapsed = true;
       _maybeHandoff();
