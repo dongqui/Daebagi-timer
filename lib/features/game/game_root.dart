@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flame/game.dart';
 import 'package:flame/components.dart';
 import 'package:flame/events.dart';
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'components/home/home_world.dart';
 import 'events/game_event_manager.dart';

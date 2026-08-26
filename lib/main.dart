@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:catodo/core/boot_screen.dart';
 import 'package:catodo/core/init_db.dart';
 import 'package:catodo/core/navigation/navigator_key.dart';
 import 'package:catodo/theme/app_theme.dart';
@@ -20,6 +21,10 @@ void main() async {
     debugPrint('Wakelock 활성화 실패 (무시): $e');
   }
   runApp(const MyApp());
+
+  // 첫 프레임이 실제로 그려진 뒤에 웹 부트 화면을 걷는다.
+  // 더 일찍 걷으면 엔진이 아직 아무것도 안 그린 순간이 드러난다.
+  WidgetsBinding.instance.addPostFrameCallback((_) => hideBootScreen());
 }
 
 class MyApp extends StatefulWidget {
@@ -61,7 +66,8 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
       navigatorKey: navigatorKey,
-      title: 'Catodo',
+      // 웹에서는 이 값이 곧 브라우저 탭 제목이 된다. index.html의 <title>과 맞춘다.
+      title: '대박이 타이머',
       // TODO: https://docs.flutter.dev/ui/accessibility-and-internationalization/internationalization#localizing-for-ios-updating-the-ios-app-bundle
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,

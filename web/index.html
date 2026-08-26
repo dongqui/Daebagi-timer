@@ -29,10 +29,58 @@
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="favicon.png"/>
 
-  <title>catodo</title>
+  <title>대박이 타이머</title>
   <link rel="manifest" href="manifest.json">
+
+  <!--
+    Flutter 엔진이 첫 프레임을 그리기 전까지 브라우저는 이 문서를 그대로 보여준다.
+    아무것도 없으면 그동안 흰 화면이 뜬다. 앱과 같은 검은 배경을 미리 칠하고
+    로더만 얹어, 부팅 구간이 인트로의 일부처럼 보이게 한다.
+
+    캐릭터는 여기서 그리지 않는다 — Dart 인트로가 캐릭터를 아래에서 떠오르게
+    연출하는데, 부트 화면에 이미 떠 있으면 그 연출이 한 번 튄다.
+  -->
+  <style>
+    html, body {
+      margin: 0;
+      height: 100%;
+      background: #000000;
+    }
+    #boot {
+      position: fixed;
+      inset: 0;
+      background: #000000;
+      transition: opacity 200ms ease;
+      pointer-events: none;
+    }
+    #boot .spinner {
+      position: absolute;
+      left: 50%;
+      bottom: 80px;
+      width: 36px;
+      height: 36px;
+      margin-left: -18px;
+      border: 4px solid rgba(255, 255, 255, 0.14);
+      border-top-color: #ffffff;
+      border-radius: 50%;
+      animation: boot-spin 900ms linear infinite;
+    }
+    @keyframes boot-spin { to { transform: rotate(360deg); } }
+  </style>
 </head>
 <body>
+  <div id="boot"><div class="spinner"></div></div>
+
+  <script>
+    // Dart 쪽에서 첫 프레임을 그린 뒤 호출한다 (lib/core/boot_screen.dart).
+    window.hideBootScreen = function () {
+      var el = document.getElementById('boot');
+      if (!el) return;
+      el.style.opacity = '0';
+      setTimeout(function () { el.remove(); }, 200);
+    };
+  </script>
+
   <!-- 앱인토스 SDK. Flutter 시작 전에 window.AppsInTossModule이 준비되도록 동기 로드한다. -->
   <script src="js/apps_in_toss.js"></script>
   <script src="flutter_bootstrap.js" async></script>
