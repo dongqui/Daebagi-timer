@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flame/game.dart';
 import 'package:flame/components.dart';
 import 'package:flame/events.dart';
@@ -34,6 +36,27 @@ class GameRoot extends FlameGame
 
     // 컴포넌트 추가
     await addAll([homeWorld, gameCamera, gameEventManager]);
+
+    _warmUpTimerAssets();
+  }
+
+  /// 타이머 월드가 쓰는 별 이미지를 미리 캐시에 올려둔다.
+  ///
+  /// 원본이 2752x2064짜리 세 장이라, 집중을 시작하는 순간 한꺼번에 디코딩하면
+  /// 첫 1초가 눈에 띄게 끊긴다. 홈에 머무는 동안 백그라운드로 데워둔다.
+  /// 실패해도 `SpaceMap`이 제때 다시 불러오므로 삼켜도 된다.
+  void _warmUpTimerAssets() {
+    unawaited(() async {
+      try {
+        await images.loadAll([
+          'parallax/stars_top.png',
+          'parallax/stars_mid.png',
+          'parallax/stars_bot.png',
+        ]);
+      } catch (e) {
+        debugPrint('타이머 배경 미리 로드 실패 (무시): $e');
+      }
+    }());
   }
 
   void setCurrentCharacter(Character character) {

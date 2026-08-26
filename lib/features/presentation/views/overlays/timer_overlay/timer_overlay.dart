@@ -49,14 +49,23 @@ class _TimerOverlayState extends State<TimerOverlay> {
 
   /// 저장된 백색소음 선택을 실제 재생으로 이어준다.
   /// 이게 없으면 체크는 되어 있는데 소리는 안 나는 상태가 된다.
+  ///
+  /// 켜져 있는 것만 불러온다. 예전에는 목록 전체를 미리 로드해서, 소리를 하나도
+  /// 안 켠 사람도 타이머 시작 직후 mp3 디코딩 때문에 화면이 끊겼다.
+  /// 나머지는 패널에서 체크할 때 `AudioController`가 알아서 불러온다.
   Future<void> _initAudio() async {
-    await _audioController.preload(whiteNoiseTypes);
     await AudioManager.instance.getAudioList();
     if (!mounted) return;
 
     final selected = AudioManager.instance.state.whiteNoise;
-    for (final type in whiteNoiseTypes) {
-      if (selected.contains(type.name)) _audioController.play(type);
+    final active =
+        whiteNoiseTypes.where((t) => selected.contains(t.name)).toList();
+    if (active.isEmpty) return;
+
+    await _audioController.preload(active);
+    if (!mounted) return;
+    for (final type in active) {
+      _audioController.play(type);
     }
   }
 

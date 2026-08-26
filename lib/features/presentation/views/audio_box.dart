@@ -8,19 +8,21 @@ import 'package:catodo/theme/tds_typography.dart';
 import 'package:catodo/widgets/tds/tds_checkbox.dart';
 import 'package:catodo/widgets/tds/tds_glass_panel.dart';
 
-/// 타이머에서 고를 수 있는 백색소음. 번들에 mp3가 있는 것만 노출한다.
+/// 타이머에서 고를 수 있는 백색소음. `assets/sounds/`에 mp3가 있는 것만 노출한다.
 const List<AudioType> whiteNoiseTypes = [
   AudioType.rain,
   AudioType.birds,
+  AudioType.wave,
+  AudioType.fire,
 ];
 
 String whiteNoiseLabel(AudioType type) => switch (type) {
       AudioType.rain => '빗소리',
       AudioType.birds => '새소리',
-      AudioType.forest => '숲소리',
-      AudioType.ocean => '파도소리',
-      AudioType.wind => '바람소리',
+      AudioType.wave => '파도소리',
       AudioType.fire => '모닥불',
+      AudioType.forest => '숲소리',
+      AudioType.wind => '바람소리',
       AudioType.thunder => '천둥소리',
     };
 
