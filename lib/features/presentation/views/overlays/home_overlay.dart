@@ -20,6 +20,11 @@ class HomeOverlayState extends State<HomeOverlay>
     super.initState();
     CharacterManager.instance.initSelectedCharacter();
     TimerManager.instance.addListenerToStatus(_onTimerStatusChanged);
+    // goToStats()가 홈 오버레이 재생성보다 먼저 idle로 바뀌면
+    // 리스너만으로는 놓치므로 마운트 시에도 한 번 확인한다.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _openSettingsIfRequested();
+    });
   }
 
   @override
@@ -29,11 +34,17 @@ class HomeOverlayState extends State<HomeOverlay>
   }
 
   void _onTimerStatusChanged(TimerStatus status) {
-    if (status == TimerStatus.idle &&
-        TimerManager.instance.openSettingsOnIdle) {
-      TimerManager.instance.openSettingsOnIdle = false;
-      setState(() => _isSettingsOpen = true);
+    if (status == TimerStatus.idle) {
+      _openSettingsIfRequested();
     }
+  }
+
+  void _openSettingsIfRequested() {
+    if (!mounted) return;
+    if (TimerManager.instance.state.status != TimerStatus.idle) return;
+    if (!TimerManager.instance.openSettingsOnIdle) return;
+    TimerManager.instance.openSettingsOnIdle = false;
+    setState(() => _isSettingsOpen = true);
   }
 
   void _toggleSettings() {

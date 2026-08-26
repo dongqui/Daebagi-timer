@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:catodo/core/navigation/app_back_dispatcher.dart';
 import 'package:catodo/features/presentation/viewmodels/timer_state.dart';
 import 'package:catodo/features/presentation/views/focus_form/focus_activity_input_widget.dart';
 import 'package:catodo/features/presentation/views/focus_form/focus_time_input_widget.dart';
@@ -15,10 +16,17 @@ class _FocusFormState extends State<FocusForm>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
   late final Animation<Offset> _offsetAnimation;
+  late final bool Function() _backHandler;
 
   @override
   void initState() {
     super.initState();
+    _backHandler = () {
+      _dismissToHome();
+      return true;
+    };
+    AppBackDispatcher.instance.push(_backHandler);
+
     _controller = AnimationController(
       duration: const Duration(milliseconds: 300),
       vsync: this,
@@ -35,17 +43,22 @@ class _FocusFormState extends State<FocusForm>
 
   @override
   void dispose() {
+    AppBackDispatcher.instance.remove(_backHandler);
     _controller.dispose();
 
     super.dispose();
   }
 
+  void _dismissToHome() {
+    _controller.reverse().then((_) {
+      TimerManager.instance.cancel();
+    });
+  }
+
   void _handleDragEnd(DragEndDetails details) {
     if (details.primaryVelocity! > 300) {
       // 아래로 스와이프 속도가 300 이상일 때
-      _controller.reverse().then((_) {
-        TimerManager.instance.cancel();
-      });
+      _dismissToHome();
     }
   }
 

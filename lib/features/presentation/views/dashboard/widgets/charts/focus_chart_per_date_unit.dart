@@ -39,24 +39,11 @@ class _FocusChartPerDateUnitState extends State<FocusChartPerDateUnit> {
     if (_state.currentDateUnit == DateUnit.day) {
       return List.generate(24, (index) => index.toString());
     } else if (_state.currentDateUnit == DateUnit.week) {
-      return ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
+      return ['월', '화', '수', '목', '금', '토', '일'];
     } else if (_state.currentDateUnit == DateUnit.month) {
       return List.generate(31, (index) => (index + 1).toString());
     } else if (_state.currentDateUnit == DateUnit.year) {
-      return [
-        'JAN',
-        'FEB',
-        'MAR',
-        'APR',
-        'MAY',
-        'JUN',
-        'JUL',
-        'AUG',
-        'SEP',
-        'OCT',
-        'NOV',
-        'DEC'
-      ];
+      return List.generate(12, (index) => (index + 1).toString());
     }
     return [];
   }

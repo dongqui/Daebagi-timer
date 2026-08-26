@@ -44,7 +44,7 @@ class _FocusSummaryContainerState extends State<FocusSummaryContainer> {
               ),
               child: Center(
                 child: Text(
-                  'Total Time\n${_calculateTotalTime()}',
+                  '총 시간\n${_calculateTotalTime()}',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 24,
@@ -65,7 +65,7 @@ class _FocusSummaryContainerState extends State<FocusSummaryContainer> {
               ),
               child: Center(
                 child: Text(
-                  'Sessions\n${_calculateSessionCount()}',
+                  '세션\n${_calculateSessionCount()}',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 24,
@@ -90,13 +90,13 @@ class _FocusSummaryContainerState extends State<FocusSummaryContainer> {
     }
 
     if (totalSeconds < 60) {
-      return '${totalSeconds}s';
+      return '${totalSeconds}초';
     } else if (totalSeconds < 3600) {
-      return '${(totalSeconds / 60).round()}m';
+      return '${(totalSeconds / 60).round()}분';
     } else {
       int hours = (totalSeconds / 3600).floor();
       int minutes = ((totalSeconds % 3600) / 60).round();
-      return '${hours}h${minutes}m';
+      return '$hours시간 $minutes분';
     }
   }
 

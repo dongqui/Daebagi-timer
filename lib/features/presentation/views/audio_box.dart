@@ -7,6 +7,25 @@ final List<AudioType> audioList = [
   AudioType.birds,
 ];
 
+String _audioTypeLabel(AudioType type) {
+  switch (type) {
+    case AudioType.rain:
+      return '빗소리';
+    case AudioType.birds:
+      return '새소리';
+    case AudioType.forest:
+      return '숲소리';
+    case AudioType.ocean:
+      return '파도소리';
+    case AudioType.wind:
+      return '바람소리';
+    case AudioType.fire:
+      return '모닥불';
+    case AudioType.thunder:
+      return '천둥소리';
+  }
+}
+
 class AudioBox extends StatefulWidget {
   const AudioBox({super.key});
 
@@ -50,7 +69,7 @@ class _AudioBoxState extends State<AudioBox> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'White noise',
+            '백색 소음',
             style: TextStyle(
               color: Color(0xFFFFFFFF),
               fontSize: 20,
@@ -68,7 +87,7 @@ class _AudioBoxState extends State<AudioBox> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      type.name,
+                      _audioTypeLabel(type),
                       style: const TextStyle(
                         color: Color(0xFFFFFFFF),
                         fontSize: 14,
@@ -79,8 +98,7 @@ class _AudioBoxState extends State<AudioBox> {
                     const SizedBox(height: 4),
                     Checkbox(
                       activeColor: const Color(0xFF3A86FF),
-                      visualDensity:
-                          VisualDensity.compact,
+                      visualDensity: VisualDensity.compact,
                       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       value: AudioManager.instance.state.whiteNoise
                           .contains(type.name),

@@ -14,9 +14,7 @@ class _TimerOverlayState extends State<TimerOverlay> {
   late TimerState _timerState;
   final _timerManager = TimerManager.instance;
 
-  final GlobalKey audioButtonKey = GlobalKey();
   bool _isAudioBoxVisible = false;
-  double audioBoxPositionY = 100.0; // 버튼의 bottom y좌표 저장
 
   @override
   void initState() {
@@ -44,14 +42,8 @@ class _TimerOverlayState extends State<TimerOverlay> {
   }
 
   void _toggleAudioBox() {
-    final RenderBox renderBox =
-        audioButtonKey.currentContext?.findRenderObject() as RenderBox;
-    final position = renderBox.localToGlobal(Offset.zero);
-    final size = renderBox.size;
-
     setState(() {
       _isAudioBoxVisible = !_isAudioBoxVisible;
-      audioBoxPositionY = position.dy - size.height * 6.5; // 버튼 위로 올라가도록 수정
     });
   }
 
@@ -86,7 +78,6 @@ class _TimerOverlayState extends State<TimerOverlay> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               IconButton(
-                key: audioButtonKey,
                 color: Color(0xffffffff),
                 onPressed: _toggleAudioBox,
                 icon: Icon(
@@ -141,15 +132,14 @@ class _TimerOverlayState extends State<TimerOverlay> {
           ),
         ),
       ),
-      Positioned(
-        top: audioBoxPositionY,
-        left: 5,
-        width: 260,
-        child: Offstage(
-          offstage: !_isAudioBoxVisible,
+      if (_isAudioBoxVisible)
+        Positioned(
+          // 하단 컨트롤 바 바로 위, 우측(음악 아이콘 쪽) 정렬
+          right: 20,
+          bottom: 92,
+          width: 220,
           child: const AudioBox(),
         ),
-      ),
     ]);
   }
 }

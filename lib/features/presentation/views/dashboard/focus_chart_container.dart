@@ -58,7 +58,7 @@ class _FocusChartContainerState extends State<FocusChartContainer> {
                     height: 40,
                     child: Center(
                       child: Text(
-                        ' Day ',
+                        '일',
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w500,
@@ -71,7 +71,7 @@ class _FocusChartContainerState extends State<FocusChartContainer> {
                     height: 40,
                     child: Center(
                       child: Text(
-                        'Week',
+                        '주',
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w500,
@@ -84,7 +84,7 @@ class _FocusChartContainerState extends State<FocusChartContainer> {
                     height: 40,
                     child: Center(
                       child: Text(
-                        'Month',
+                        '월',
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w500,
@@ -97,7 +97,7 @@ class _FocusChartContainerState extends State<FocusChartContainer> {
                     height: 40,
                     child: Center(
                       child: Text(
-                        'Year',
+                        '년',
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w500,

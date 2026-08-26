@@ -8,11 +8,11 @@ import 'dart:math';
 extension DurationExtension on int {
   String toReadableDuration() {
     if (this < 60) {
-      return '${this}s';
+      return '${this}초';
     } else if (this < 3600) {
-      return '${(this / 60).toStringAsFixed(1)}m';
+      return '${(this / 60).toStringAsFixed(1)}분';
     } else {
-      return '${(this / 3600).toStringAsFixed(1)}h';
+      return '${(this / 3600).toStringAsFixed(1)}시간';
     }
   }
 }
