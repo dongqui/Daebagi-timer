@@ -48,17 +48,7 @@ class _StatsScreenState extends State<StatsScreen> {
     if (mounted) setState(() => _state = state);
   }
 
-  void _openCharacterSelectors() {
-    showDialog<void>(
-      context: context,
-      barrierDismissible: true,
-      builder: (context) => Dialog(
-        backgroundColor: TdsColors.canvas,
-        insetPadding: EdgeInsets.zero,
-        child: CharacterSelectors(onClose: () => Navigator.of(context).pop()),
-      ),
-    );
-  }
+  void _openCharacterSelectors() => openCharacterSelectors(context);
 
   /// 화면에 보이는 구간의 총 집중 시간(초).
   int get _totalSeconds => _state.focusSessions.fold(

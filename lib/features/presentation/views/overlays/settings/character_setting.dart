@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:catodo/core/utils/sprite_loader.dart';
 import 'package:catodo/features/presentation/viewmodels/characater_state.dart';
 import 'package:catodo/features/presentation/views/character_selectors.dart';
-import 'package:catodo/theme/tds_colors.dart';
 
 /// 지금 선택된 캐릭터를 보여주는 영역. 누르면 캐릭터를 바꿀 수 있다.
 ///
@@ -85,17 +84,7 @@ class _CharacterSettingOverlayState extends State<CharacterSettingOverlay> {
     });
   }
 
-  void _openCharacterSelectors() {
-    showDialog<void>(
-      context: context,
-      barrierDismissible: true,
-      builder: (context) => Dialog(
-        backgroundColor: TdsColors.canvas,
-        insetPadding: EdgeInsets.zero,
-        child: CharacterSelectors(onClose: () => Navigator.of(context).pop()),
-      ),
-    );
-  }
+  void _openCharacterSelectors() => openCharacterSelectors(context);
 
   @override
   Widget build(BuildContext context) {

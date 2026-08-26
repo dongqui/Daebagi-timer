@@ -13,6 +13,38 @@ import 'package:catodo/widgets/tds/tds_button.dart';
 import 'package:catodo/widgets/tds/tds_loader.dart';
 import 'package:catodo/widgets/tds/tds_navigation.dart';
 
+/// 캐릭터 선택 화면을 옆에서 밀어 넣는다.
+///
+/// 상단 버튼이 뒤로가기(←)라 페이드로 떠오르면 방향이 어긋난다. 오른쪽에서
+/// 들어오고 오른쪽으로 빠져야 화살표와 말이 맞는다.
+///
+/// 라우트로 밀어 넣으므로 안드로이드·토스 뒤로가기도 이 화면을 먼저 닫는다
+/// (`AppBackDispatcher`가 Navigator를 가장 먼저 본다).
+Future<void> openCharacterSelectors(BuildContext context) {
+  return Navigator.of(context).push(
+    PageRouteBuilder<void>(
+      transitionDuration: const Duration(milliseconds: 320),
+      reverseTransitionDuration: const Duration(milliseconds: 260),
+      pageBuilder: (context, _, __) => Scaffold(
+        backgroundColor: TdsColors.canvas,
+        body: CharacterSelectors(onClose: () => Navigator.of(context).pop()),
+      ),
+      transitionsBuilder: (context, animation, _, child) {
+        return SlideTransition(
+          position: Tween(
+            begin: const Offset(1, 0),
+            end: Offset.zero,
+          ).animate(CurvedAnimation(
+            parent: animation,
+            curve: TdsMotion.emphasized,
+          )),
+          child: child,
+        );
+      },
+    ),
+  );
+}
+
 /// 함께 여행할 캐릭터를 고르는 화면.
 ///
 /// 가운데 캐릭터만 travel 애니메이션으로 크게 움직이고, 양옆은 작게 idle로 대기한다.
