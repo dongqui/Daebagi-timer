@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:catodo/features/presentation/viewmodels/timer_state.dart';
-import 'package:catodo/widgets/full_screen_overlay.dart';
-import 'package:catodo/features/presentation/viewmodels/characater_state.dart';
-import 'package:catodo/features/presentation/views/overlays/settings/settings.dart';
 
+import 'package:catodo/features/presentation/viewmodels/characater_state.dart';
+import 'package:catodo/features/presentation/viewmodels/timer_state.dart';
+import 'package:catodo/features/presentation/views/stats/stats_screen.dart';
+import 'package:catodo/theme/tds_colors.dart';
+import 'package:catodo/widgets/full_screen_overlay.dart';
+import 'package:catodo/widgets/tds/tds_glass_panel.dart';
+import 'package:catodo/widgets/tds/tds_icon_button.dart';
+
+/// 홈 화면 위에 얹히는 컨트롤. 뒤에서는 Flame 홈 월드가 돌고 있다.
 class HomeOverlay extends StatefulWidget {
   const HomeOverlay({super.key});
 
@@ -13,18 +18,25 @@ class HomeOverlay extends StatefulWidget {
 
 class HomeOverlayState extends State<HomeOverlay>
     with SingleTickerProviderStateMixin {
-  bool _isSettingsOpen = false;
+  bool _isStatsOpen = false;
 
   @override
   void initState() {
     super.initState();
     CharacterManager.instance.initSelectedCharacter();
     TimerManager.instance.addListenerToStatus(_onTimerStatusChanged);
-    // goToStats()가 홈 오버레이 재생성보다 먼저 idle로 바뀌면
-    // 리스너만으로는 놓치므로 마운트 시에도 한 번 확인한다.
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _openSettingsIfRequested();
-    });
+    // 완료 화면에서 '기록 보기'로 넘어온 경우다. 첫 프레임부터 기록 화면이
+    // 올라와 있어야 홈이 한 번 깜빡이지 않는다 — 그래서 postFrame이 아니라
+    // 여기서 바로 켠다.
+    _isStatsOpen = _shouldOpenStats();
+  }
+
+  /// 대기 중인 '기록 열기' 요청을 소비한다. 한 번 읽으면 플래그를 내린다.
+  bool _shouldOpenStats() {
+    if (TimerManager.instance.state.status != TimerStatus.idle) return false;
+    if (!TimerManager.instance.openSettingsOnIdle) return false;
+    TimerManager.instance.openSettingsOnIdle = false;
+    return true;
   }
 
   @override
@@ -34,23 +46,13 @@ class HomeOverlayState extends State<HomeOverlay>
   }
 
   void _onTimerStatusChanged(TimerStatus status) {
-    if (status == TimerStatus.idle) {
-      _openSettingsIfRequested();
-    }
+    // 오버레이가 이미 살아 있는 채로 idle이 된 경우(취소 등)를 위한 경로.
+    if (!mounted || status != TimerStatus.idle) return;
+    if (_shouldOpenStats()) setState(() => _isStatsOpen = true);
   }
 
-  void _openSettingsIfRequested() {
-    if (!mounted) return;
-    if (TimerManager.instance.state.status != TimerStatus.idle) return;
-    if (!TimerManager.instance.openSettingsOnIdle) return;
-    TimerManager.instance.openSettingsOnIdle = false;
-    setState(() => _isSettingsOpen = true);
-  }
-
-  void _toggleSettings() {
-    setState(() {
-      _isSettingsOpen = !_isSettingsOpen;
-    });
+  void _toggleStats() {
+    setState(() => _isStatsOpen = !_isStatsOpen);
   }
 
   @override
@@ -63,41 +65,34 @@ class HomeOverlayState extends State<HomeOverlay>
           ),
         ),
         Positioned(
-          top: 20,
-          right: 20,
-          child: GestureDetector(
-            onTap: _toggleSettings,
-            child: Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.white.withOpacity(0.1),
-              ),
-              child: const Center(
-                child: Icon(
-                  Icons.menu,
-                  color: Colors.white,
-                  size: 28,
-                ),
-              ),
+          top: MediaQuery.paddingOf(context).top + 8,
+          right: 16,
+          child: TdsGlassPanel(
+            child: TdsIconButton(
+              icon: const Icon(Icons.menu_rounded),
+              size: TdsIconButtonSize.l,
+              variant: TdsIconButtonVariant.clear,
+              color: TdsColors.onCanvasIcon,
+              semanticLabel: '메뉴',
+              onPressed: _toggleStats,
             ),
           ),
         ),
-        if (_isSettingsOpen)
+        if (_isStatsOpen)
           FullScreenOverlay(
-            onClose: _toggleSettings,
-            backgroundColor: Colors.black,
-            child: (context, onClose) => const SettingsOverlay(),
+            onClose: _toggleStats,
+            child: (context, close) => StatsScreen(onClose: close),
           ),
       ],
     );
   }
 }
 
+/// 집중을 시작하는 버튼. 파문이 계속 퍼져나가 시선을 붙든다.
 class _ShuttleWaveButton extends StatefulWidget {
-  final VoidCallback onTap;
   const _ShuttleWaveButton({required this.onTap});
+
+  final VoidCallback onTap;
 
   @override
   State<_ShuttleWaveButton> createState() => _ShuttleWaveButtonState();
@@ -105,16 +100,10 @@ class _ShuttleWaveButton extends StatefulWidget {
 
 class _ShuttleWaveButtonState extends State<_ShuttleWaveButton>
     with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 8),
-    )..repeat();
-  }
+  late final AnimationController _controller = AnimationController(
+    vsync: this,
+    duration: const Duration(seconds: 8),
+  )..repeat();
 
   @override
   void dispose() {
@@ -145,25 +134,16 @@ class _ShuttleWaveButtonState extends State<_ShuttleWaveButton>
                     height: size,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: Colors.grey[600]!.withOpacity(opacity),
+                      color: TdsColors.fillNeutral.withValues(alpha: opacity),
                     ),
                   );
                 },
               );
             }),
-            Container(
-              width: 44,
-              height: 44,
-              decoration: const BoxDecoration(
-                shape: BoxShape.circle,
-              ),
-              child: Center(
-                child: Image.asset(
-                  'assets/images/icons/shuttle.png',
-                  width: 32,
-                  height: 32,
-                ),
-              ),
+            Image.asset(
+              'assets/images/icons/shuttle.png',
+              width: 32,
+              height: 32,
             ),
           ],
         ),

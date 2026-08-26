@@ -44,6 +44,8 @@ flutter:
     - assets/images/icons/
     - assets/images/parallax/
     - assets/images/planet.png
+    # 인트로 화면 캐릭터. 원본 dog_photo_cutout.png는 알파가 없어 번들에 넣지 않는다.
+    - assets/images/dog_cutout.webp
     - assets/images/flowstar_left.png
     - assets/images/flowstar_right.png
     - assets/images/star_1.png

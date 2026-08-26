@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 import 'package:catodo/core/storage/key_value_store.dart';
 import 'package:catodo/core/storage/store_selector.dart';
 import 'package:catodo/core/storage/toss_storage_store.dart';
@@ -63,8 +65,48 @@ void main() {
       expect(fallbackStore.initCount, 1);
     });
 
+    test('앱인토스 웹뷰인데 Storage API가 없으면 경고를 남긴다', () async {
+      // 데이터가 조용히 사라지는 유일한 경로다. 토스 웹뷰 안인데 SDK 번들을
+      // 못 찾으면 localStorage로 내려가고, iOS는 7일 뒤 그걸 지운다.
+      final logs = <String>[];
+      final original = debugPrint;
+      debugPrint = (String? message, {int? wrapWidth}) => logs.add(message ?? '');
+      addTearDown(() => debugPrint = original);
+
+      final fallbackStore = InMemoryKeyValueStore();
+      final selected = await createDefaultKeyValueStore(
+        isTossAvailable: () => false,
+        isTossWebView: () => true,
+        createTossStore: () => fail('Storage API가 없으면 토스 store를 만들면 안 된다'),
+        createFallbackStore: () => fallbackStore,
+      );
+
+      expect(selected, same(fallbackStore));
+      expect(
+        logs.join('\n'),
+        contains('Storage API를 찾지 못했습니다'),
+        reason: '조용히 fallback하면 안 된다',
+      );
+    });
+
+    test('일반 브라우저에서의 fallback은 경고 없이 지나간다', () async {
+      final logs = <String>[];
+      final original = debugPrint;
+      debugPrint = (String? message, {int? wrapWidth}) => logs.add(message ?? '');
+      addTearDown(() => debugPrint = original);
+
+      await createDefaultKeyValueStore(
+        isTossAvailable: () => false,
+        isTossWebView: () => false,
+        createFallbackStore: InMemoryKeyValueStore.new,
+      );
+
+      expect(logs.join('\n'), isNot(contains('경고')));
+    });
+
     test('VM(비웹) 빌드에서는 TossStorageStore가 사용 불가로 감지된다', () {
       expect(TossStorageStore.isAvailable, isFalse);
+      expect(TossStorageStore.isTossWebView, isFalse);
     });
   });
 }

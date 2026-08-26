@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
+
 import 'package:catodo/core/observer.dart';
 import 'package:catodo/features/data/repositories/audio_repository.dart';
 import 'package:catodo/features/data/models/audio_model.dart';
@@ -77,7 +79,12 @@ class AudioManager extends Observer<AudioState> {
         : _state.whiteNoise.where((e) => e != key).toList();
 
     _updateState(_state.copyWith(whiteNoise: whiteNoise));
-    unawaited(updateAudio(whiteNoise: whiteNoise));
+    // 체크박스 반응이 저장을 기다릴 이유는 없지만, 실패를 삼키면 안 된다.
+    unawaited(
+      updateAudio(whiteNoise: whiteNoise).catchError(
+        (Object e) => debugPrint('백색소음 설정 저장 실패: $e'),
+      ),
+    );
   }
 
   void _updateState(AudioState state) {

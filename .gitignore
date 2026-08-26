@@ -56,3 +56,5 @@ app.*.map.json
 
 firebase.json
 lib/firebase_options.dart
+# 로컬 도구 설정 (권한 등) — 공유하지 않는다
+.claude/settings.local.json

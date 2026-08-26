@@ -9,14 +9,12 @@ class FocusFormState {
   final int duration;
   final DateTime date;
   final List<String> latestActivities;
-  final bool isFocused;
 
   const FocusFormState({
     required this.activity,
     required this.duration,
     required this.date,
     required this.latestActivities,
-    this.isFocused = false,
   });
 
   FocusFormState copyWith({
@@ -24,14 +22,12 @@ class FocusFormState {
     int? duration,
     DateTime? date,
     List<String>? latestActivities,
-    bool? isFocused,
   }) {
     return FocusFormState(
       activity: activity ?? this.activity,
       duration: duration ?? this.duration,
       date: date ?? this.date,
       latestActivities: latestActivities ?? this.latestActivities,
-      isFocused: isFocused ?? this.isFocused,
     );
   }
 }
@@ -49,7 +45,6 @@ class FormManager {
           duration: DEFAULT_WORK_TIME,
           date: DateTime.now(),
           latestActivities: [],
-          isFocused: false,
         );
 
   FocusFormState get state => _state;
@@ -69,7 +64,10 @@ class FormManager {
             _state.latestActivities.where((e) => e != activity).toList()));
   }
 
+  /// 방금 시작한 활동을 최근 목록에 올린다. 빈 이름은 넣지 않는다.
   void addLatestActivity() {
+    if (_state.activity.trim().isEmpty) return;
+
     if (!_state.latestActivities.contains(_state.activity)) {
       LatestActivityRepository.instance.addLatestActivity(LatestActivity(
         name: _state.activity,
@@ -103,17 +101,23 @@ class FormManager {
     }
   }
 
-  void updateIsFocused(bool isFocused) {
-    _updateState(_state.copyWith(isFocused: isFocused));
-  }
 
-  Future<int> save(int focussedTime) async {
+  /// 방금 끝난 집중을 기록에 남기고, 저장된 세션을 돌려준다.
+  ///
+  /// 저장 시각은 반드시 여기서 새로 찍는다. 예전에는 `_state.date`를 썼는데
+  /// 그 값은 매니저가 만들어질 때(= 앱 실행 시점) 한 번 정해져서, 앱을 켜둔 채
+  /// 여러 번 집중하면 전부 같은 시각으로 저장됐다. 차트가 세션을 시간대·요일별로
+  /// 나눌 때 이 값을 쓰기 때문에 기록 자체가 틀어지는 문제였다.
+  Future<FocusSession> save(int focussedTime) async {
+    final completedAt = DateTime.now();
     final session = FocusSession(
       activity: _state.activity,
       focusedTime: focussedTime,
       restTime: 0,
-      date: _state.date,
+      date: completedAt,
     );
-    return await FocusSessionRepository.instance.addFocusSession(session);
+    session.id = await FocusSessionRepository.instance.addFocusSession(session);
+    _updateState(_state.copyWith(date: completedAt));
+    return session;
   }
 }

@@ -32,9 +32,12 @@ extension type _TossStorage(JSObject _) implements JSObject {
 class TossStorageStore implements KeyValueStore {
   _TossStorage? _storage;
 
+  /// 토스 앱 웹뷰 안에서 돌고 있는가. SDK 번들 로드 여부와는 별개다.
+  static bool get isTossWebView => _reactNativeWebView != null;
+
   /// 토스 웹뷰 안이고 SDK 번들이 로드되어 있는가.
   static bool get isAvailable =>
-      _reactNativeWebView != null && _appsInTossModule?.storage != null;
+      isTossWebView && _appsInTossModule?.storage != null;
 
   @override
   Future<void> init() async {

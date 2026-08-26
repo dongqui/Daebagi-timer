@@ -3,6 +3,9 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:catodo/features/presentation/views/dashboard/widgets/legends_list_widget.dart';
 import 'package:catodo/features/presentation/viewmodels/chart_state.dart';
+import 'package:catodo/theme/tds_colors.dart';
+import 'package:catodo/theme/tds_metrics.dart';
+import 'package:catodo/theme/tds_typography.dart';
 import 'dart:math';
 
 extension DurationExtension on int {
@@ -107,8 +110,10 @@ class BaseChart extends StatelessWidget {
 
     return SideTitleWidget(
       meta: meta,
-      child:
-          Text(name, style: TextStyle(fontSize: 12, color: Color(0xffffffff))),
+      child: Text(
+        name,
+        style: const TextStyle(fontSize: 12, color: TdsColors.onCanvasMedium),
+      ),
     );
   }
 
@@ -187,51 +192,66 @@ class BaseChart extends StatelessWidget {
       );
   @override
   Widget build(BuildContext context) {
-    const int activitiesHeight = 14;
-
     if (activities.isEmpty) {
-      return Container(
-        padding: EdgeInsets.all(16),
-        width: MediaQuery.of(context).size.width + 200,
-        height: MediaQuery.of(context).size.width / 1.6 + activitiesHeight,
-        child: Center(
-          child: Text(
-            '데이터가 없습니다',
-            style: TextStyle(
-              color: Color(0xFFFFFFFF),
-              fontSize: 20,
-              fontWeight: FontWeight.w600,
-            ),
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: TdsSpacing.pageMarginM,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                '아직 기록이 없어요',
+                style: TdsText.subtitle.copyWith(
+                  color: TdsColors.onCanvasHigh,
+                ),
+              ),
+              const SizedBox(height: TdsSpacing.gapS),
+              Text(
+                '집중을 시작하면 여기에 쌓여요',
+                textAlign: TextAlign.center,
+                style: TdsText.body.copyWith(
+                  color: TdsColors.textQuaternary,
+                ),
+              ),
+            ],
           ),
         ),
       );
     }
 
+    // 라벨이 12개를 넘으면(일·월 단위) 한 화면에 다 못 넣으니 가로로 스크롤한다.
+    final scrolls = labels.length > 12;
+
     return Padding(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(
+        TdsSpacing.pageMarginM,
+        16,
+        TdsSpacing.pageMarginM,
+        8,
+      ),
       child: Column(
-        mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          LegendsListWidget(
+            legends: [
+              for (final activity in activities)
+                Legend(activity, colors[activity]!),
+            ],
+          ),
           const SizedBox(height: 8),
-          if (activities.isNotEmpty)
-            LegendsListWidget(
-                legends: activities
-                    .map((activity) => Legend(activity, colors[activity]!))
-                    .toList()),
-          labels.length <= 12
-              ? AspectRatio(
-                  aspectRatio: 1.6,
-                  child: barChart,
-                )
-              : SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: SizedBox(
-                    width: MediaQuery.of(context).size.width + 200,
-                    height: MediaQuery.of(context).size.width / 1.6,
-                    child: barChart,
-                  ),
-                ),
+          Expanded(
+            child: scrolls
+                ? SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: SizedBox(
+                      width: MediaQuery.sizeOf(context).width + 200,
+                      child: barChart,
+                    ),
+                  )
+                : barChart,
+          ),
         ],
       ),
     );

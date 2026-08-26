@@ -1,29 +1,34 @@
-import 'package:catodo/core/navigation/app_back_dispatcher.dart';
 import 'package:flutter/material.dart';
 
-class FullScreenOverlay extends StatefulWidget {
-  final Widget Function(BuildContext, VoidCallback?) child;
-  final Color backgroundColor;
-  final VoidCallback onClose;
+import 'package:catodo/core/navigation/app_back_dispatcher.dart';
+import 'package:catodo/theme/tds_colors.dart';
 
+/// 현재 화면 위를 통째로 덮는 오버레이 셸.
+///
+/// 전환 연출은 없다 — 즉시 나타나고 즉시 사라진다. 예전에는 페이드·스케일이
+/// 들어가 있었는데, 닫을 때 뒤 화면이 잠깐 비쳐 멈칫하는 것처럼 보였다.
+///
+/// 상단 바도 넣지 않는다. 안에 들어오는 화면이 각자 `TdsNavigation`으로 자기
+/// 헤더를 그리고, [child]가 받는 닫기 콜백을 원하는 자리에 붙인다.
+class FullScreenOverlay extends StatefulWidget {
   const FullScreenOverlay({
     super.key,
     required this.child,
-    this.backgroundColor = Colors.white,
     required this.onClose,
+    this.backgroundColor = TdsColors.backgroundLower,
   });
+
+  final Widget Function(BuildContext context, VoidCallback close) child;
+  final VoidCallback onClose;
+  final Color backgroundColor;
 
   @override
   State<FullScreenOverlay> createState() => _FullScreenOverlayState();
 }
 
-class _FullScreenOverlayState extends State<FullScreenOverlay>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _fadeAnimation;
-  late Animation<double> _scaleAnimation;
-  bool _isClosing = false;
+class _FullScreenOverlayState extends State<FullScreenOverlay> {
   late final bool Function() _backHandler;
+  bool _isClosing = false;
 
   @override
   void initState() {
@@ -33,98 +38,32 @@ class _FullScreenOverlayState extends State<FullScreenOverlay>
       return true;
     };
     AppBackDispatcher.instance.push(_backHandler);
-
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 550),
-    );
-    final curve = CurvedAnimation(
-      parent: _controller,
-      curve: Curves.fastOutSlowIn,
-    );
-    _fadeAnimation = curve;
-    _scaleAnimation = Tween<double>(begin: 1.05, end: 1.0).animate(curve);
-    _controller.forward();
   }
 
   @override
   void dispose() {
     AppBackDispatcher.instance.remove(_backHandler);
-    _controller.dispose();
     super.dispose();
   }
 
-  void _handleClose() async {
+  void _handleClose() {
     if (_isClosing) return;
-    setState(() => _isClosing = true);
-    await _controller.reverse();
+    _isClosing = true;
     widget.onClose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final hasStackAncestor =
-        context.findAncestorWidgetOfExactType<Stack>() != null;
-
-    Widget overlay = Positioned.fill(
-      child: FadeTransition(
-        opacity: _fadeAnimation,
-        child: ScaleTransition(
-          scale: _scaleAnimation,
-          child: Container(
-            color: widget.backgroundColor,
-            child: SafeArea(
-              child: Stack(
-                children: [
-                  // 상단 bar (앱바 스타일, 닫기 버튼 포함)
-                  Positioned(
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    child: Container(
-                      height: 64,
-                      padding: EdgeInsets.only(top: 16), // 왼쪽 상단 padding
-                      decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.7),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black26,
-                            blurRadius: 4,
-                            offset: Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      alignment: Alignment.topLeft, // 왼쪽 상단 정렬
-                      child: GestureDetector(
-                        onTap: _handleClose,
-                        child: CircleAvatar(
-                          backgroundColor: Colors.white.withOpacity(0.15),
-                          radius: 22,
-                          child:
-                              Icon(Icons.close, size: 28, color: Colors.white),
-                        ),
-                      ),
-                    ),
-                  ),
-                  // 스크롤 가능한 내용 (bar 아래에 위치)
-                  Positioned.fill(
-                    top: 64,
-                    child: widget.child(context, _handleClose),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
+    final overlay = Positioned.fill(
+      child: ColoredBox(
+        color: widget.backgroundColor,
+        child: widget.child(context, _handleClose),
       ),
     );
 
-    if (hasStackAncestor) {
-      return overlay;
-    } else {
-      return Stack(
-        children: [overlay],
-      );
-    }
+    // Stack 안에 놓이면 Positioned.fill이 그대로 먹지만, 아니면 감싸줘야 한다.
+    final hasStackAncestor =
+        context.findAncestorWidgetOfExactType<Stack>() != null;
+    return hasStackAncestor ? overlay : Stack(children: [overlay]);
   }
 }

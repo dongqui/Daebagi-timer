@@ -1,125 +1,93 @@
-import 'package:flutter/material.dart';
-import 'package:catodo/features/presentation/viewmodels/audio_state.dart';
-import 'package:catodo/features/presentation/viewmodels/audio_controller.dart';
+import 'package:flutter/widgets.dart';
 
-final List<AudioType> audioList = [
+import 'package:catodo/features/presentation/viewmodels/audio_controller.dart';
+import 'package:catodo/features/presentation/viewmodels/audio_state.dart';
+import 'package:catodo/theme/tds_colors.dart';
+import 'package:catodo/theme/tds_metrics.dart';
+import 'package:catodo/theme/tds_typography.dart';
+import 'package:catodo/widgets/tds/tds_checkbox.dart';
+import 'package:catodo/widgets/tds/tds_glass_panel.dart';
+
+/// 타이머에서 고를 수 있는 백색소음. 번들에 mp3가 있는 것만 노출한다.
+const List<AudioType> whiteNoiseTypes = [
   AudioType.rain,
   AudioType.birds,
 ];
 
-String _audioTypeLabel(AudioType type) {
-  switch (type) {
-    case AudioType.rain:
-      return '빗소리';
-    case AudioType.birds:
-      return '새소리';
-    case AudioType.forest:
-      return '숲소리';
-    case AudioType.ocean:
-      return '파도소리';
-    case AudioType.wind:
-      return '바람소리';
-    case AudioType.fire:
-      return '모닥불';
-    case AudioType.thunder:
-      return '천둥소리';
-  }
-}
+String whiteNoiseLabel(AudioType type) => switch (type) {
+      AudioType.rain => '빗소리',
+      AudioType.birds => '새소리',
+      AudioType.forest => '숲소리',
+      AudioType.ocean => '파도소리',
+      AudioType.wind => '바람소리',
+      AudioType.fire => '모닥불',
+      AudioType.thunder => '천둥소리',
+    };
 
+/// 타이머 위에 떠 있는 백색소음 패널.
+///
+/// [controller]는 타이머 화면이 들고 있다가 넘겨준다 — 패널이 이 위젯 안에서
+/// 플레이어를 만들면 패널을 닫을 때 소리가 같이 꺼져버린다.
 class AudioBox extends StatefulWidget {
-  const AudioBox({super.key});
+  const AudioBox({super.key, required this.controller});
+
+  final AudioController controller;
 
   @override
   State<AudioBox> createState() => _AudioBoxState();
 }
 
 class _AudioBoxState extends State<AudioBox> {
-  final AudioController audioController = AudioController();
-
   @override
   void initState() {
     super.initState();
-    initAudioList();
-    audioController.preload(audioList);
+    AudioManager.instance.addListener(_onAudioStateChanged);
   }
 
   @override
   void dispose() {
-    audioController.dispose();
+    AudioManager.instance.removeListener(_onAudioStateChanged);
     super.dispose();
   }
 
-  initAudioList() async {
-    await AudioManager.instance.getAudioList();
-    if (mounted) {
-      setState(() {});
+  void _onAudioStateChanged(AudioState state, AudioState? previous) {
+    if (mounted) setState(() {});
+  }
+
+  void _toggle(AudioType type, bool checked) {
+    AudioManager.instance.updateWhiteNoise(type.name, checked);
+    if (checked) {
+      widget.controller.play(type);
+    } else {
+      widget.controller.stop(type);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: const Color(0xFF0D1B2A).withValues(alpha: 0.9),
-        borderRadius: BorderRadius.circular(16.0),
-      ),
-      padding: const EdgeInsets.all(16.0),
+    final selected = AudioManager.instance.state.whiteNoise;
+
+    return TdsGlassPanel(
+      borderRadius: TdsRadius.panel,
+      elevated: true,
+      padding: const EdgeInsets.fromLTRB(18, 16, 18, 18),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            '백색 소음',
-            style: TextStyle(
-              color: Color(0xFFFFFFFF),
-              fontSize: 20,
-              fontWeight: FontWeight.w600,
+          Text(
+            '백색소음',
+            style: TdsText.bodyBold.copyWith(color: TdsColors.onCanvasStrong),
+          ),
+          const SizedBox(height: 14),
+          for (final type in whiteNoiseTypes) ...[
+            TdsCheckbox(
+              checked: selected.contains(type.name),
+              label: whiteNoiseLabel(type),
+              onChanged: (checked) => _toggle(type, checked),
             ),
-          ),
-          const SizedBox(height: 12),
-          Wrap(
-            spacing: 24,
-            runSpacing: 12,
-            children: audioList.map((AudioType type) {
-              return SizedBox(
-                width: 64,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      _audioTypeLabel(type),
-                      style: const TextStyle(
-                        color: Color(0xFFFFFFFF),
-                        fontSize: 14,
-                        fontWeight: FontWeight.w400,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 4),
-                    Checkbox(
-                      activeColor: const Color(0xFF3A86FF),
-                      visualDensity: VisualDensity.compact,
-                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      value: AudioManager.instance.state.whiteNoise
-                          .contains(type.name),
-                      onChanged: (bool? value) {
-                        final checked = value ?? false;
-                        AudioManager.instance
-                            .updateWhiteNoise(type.name, checked);
-                        setState(() {});
-
-                        if (checked) {
-                          audioController.play(type);
-                        } else {
-                          audioController.stop(type);
-                        }
-                      },
-                    ),
-                  ],
-                ),
-              );
-            }).toList(),
-          ),
+            if (type != whiteNoiseTypes.last) const SizedBox(height: 14),
+          ],
         ],
       ),
     );

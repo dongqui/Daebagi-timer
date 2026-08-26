@@ -1,103 +1,138 @@
 import 'package:flutter/material.dart';
-import 'package:catodo/features/presentation/viewmodels/form_state.dart';
 
+import 'package:catodo/features/presentation/viewmodels/form_state.dart';
+import 'package:catodo/theme/tds_colors.dart';
+import 'package:catodo/theme/tds_metrics.dart';
+import 'package:catodo/theme/tds_typography.dart';
+import 'package:catodo/widgets/tds/tds_text_field.dart';
+
+/// 무엇에 집중할지 적는 입력. 아래에 최근에 쓴 활동을 칩으로 다시 꺼낼 수 있다.
 class FocusActivityInputWidget extends StatefulWidget {
   const FocusActivityInputWidget({super.key});
 
   @override
-  State<FocusActivityInputWidget> createState() => _State();
+  State<FocusActivityInputWidget> createState() =>
+      _FocusActivityInputWidgetState();
 }
 
-class _State extends State<FocusActivityInputWidget> {
-  late List<String> _tags = [];
-  final TextEditingController _focusTextController = TextEditingController();
-  final FocusNode _focusNode = FocusNode();
+class _FocusActivityInputWidgetState extends State<FocusActivityInputWidget> {
+  final TextEditingController _controller = TextEditingController();
+  List<String> _recentActivities = const [];
 
   @override
   void initState() {
     super.initState();
+    _controller.text = FormManager.instance.state.activity;
     FormManager.instance.addListener(_onFormStateChanged);
-    initTags();
-    _focusNode.addListener(() {
-      FormManager.instance.updateIsFocused(_focusNode.hasFocus);
-    });
+    FormManager.instance.getLatestActivities();
   }
 
   @override
   void dispose() {
-    // 리스너 제거
     FormManager.instance.removeListener(_onFormStateChanged);
-    _focusNode.dispose();
+    _controller.dispose();
     super.dispose();
   }
 
   void _onFormStateChanged(FocusFormState state) {
-    setState(() {
-      _tags = state.latestActivities;
-    });
+    if (!mounted) return;
+    setState(() => _recentActivities = state.latestActivities);
   }
 
-  void initTags() async {
-    await FormManager.instance.getLatestActivities();
+  void _applyRecent(String activity) {
+    _controller.text = activity;
+    _controller.selection =
+        TextSelection.collapsed(offset: activity.length);
+    FormManager.instance.updateActivity(activity);
   }
 
   @override
   Widget build(BuildContext context) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const Text(
-          '어떤 일에 집중하실 건가요?',
-          style: TextStyle(
-              color: Color(0xFFFFFFFF),
-              fontSize: 20,
-              fontWeight: FontWeight.w600),
+        TdsTextField(
+          controller: _controller,
+          label: '어떤 일에 집중하실 건가요?',
+          // 아래 '얼마나 집중하실 건가요?'(TdsListHeader)와 같은 급으로 맞춘다.
+          labelStyle: TdsText.subtitle,
+          placeholder: '예: 수학 문제 풀기, 영어 단어 외우기',
+          textInputAction: TextInputAction.done,
+          onChanged: FormManager.instance.updateActivity,
         ),
-        const SizedBox(height: 8),
-        TextField(
-          controller: _focusTextController,
-          style: TextStyle(color: Color(0xFFFFFFFF)),
-          cursorColor: Color(0xFFFFFFFF),
-          onChanged: (text) {
-            FormManager.instance.updateActivity(text);
-          },
-          focusNode: _focusNode,
-          decoration: const InputDecoration(
-            fillColor: Color(0xFF0D1B2A),
-            hintText: '예: 수학 문제 풀기, 영어 단어 외우기',
-            hintStyle: TextStyle(color: Color(0x10FFFFFF)),
-            border: OutlineInputBorder(),
+        if (_recentActivities.isNotEmpty)
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(
+              horizontal: TdsSpacing.pageMarginM,
+            ),
+            child: Row(
+              children: [
+                for (final activity in _recentActivities)
+                  Padding(
+                    padding: const EdgeInsets.only(right: TdsSpacing.gapM),
+                    child: _RecentActivityChip(
+                      label: activity,
+                      onTap: () => _applyRecent(activity),
+                      onDelete: () =>
+                          FormManager.instance.removeLatestActivity(activity),
+                    ),
+                  ),
+              ],
+            ),
           ),
-        ),
-        const SizedBox(height: 4),
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Row(
-            children: _tags
-                .map((tag) => Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                      child: GestureDetector(
-                        onTap: () {
-                          setState(() {
-                            FormManager.instance.updateActivity(tag);
-                            _focusTextController.text = tag;
-                          });
-                        },
-                        child: Chip(
-                          label: Text(tag),
-                          deleteIcon: const Icon(Icons.close),
-                          onDeleted: () {
-                            setState(() {
-                              FormManager.instance.removeLatestActivity(tag);
-                            });
-                          },
-                        ),
-                      ),
-                    ))
-                .toList(),
-          ),
-        ),
       ],
+    );
+  }
+}
+
+class _RecentActivityChip extends StatelessWidget {
+  const _RecentActivityChip({
+    required this.label,
+    required this.onTap,
+    required this.onDelete,
+  });
+
+  final String label;
+  final VoidCallback onTap;
+  final VoidCallback onDelete;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        height: 32,
+        padding: const EdgeInsets.only(left: 12, right: 6),
+        decoration: BoxDecoration(
+          color: TdsColors.fillNeutralWeak,
+          borderRadius: BorderRadius.circular(TdsRadius.full),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              label,
+              style: TdsText.captionMedium.copyWith(
+                color: TdsColors.textSecondary,
+              ),
+            ),
+            const SizedBox(width: 2),
+            GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: onDelete,
+              child: const Padding(
+                padding: EdgeInsets.all(4),
+                child: Icon(
+                  Icons.close_rounded,
+                  size: 14,
+                  color: TdsColors.iconTertiary,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

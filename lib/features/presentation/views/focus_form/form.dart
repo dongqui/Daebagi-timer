@@ -1,10 +1,21 @@
 import 'package:flutter/material.dart';
+
 import 'package:catodo/core/navigation/app_back_dispatcher.dart';
+import 'package:catodo/features/presentation/viewmodels/form_state.dart';
 import 'package:catodo/features/presentation/viewmodels/timer_state.dart';
 import 'package:catodo/features/presentation/views/focus_form/focus_activity_input_widget.dart';
 import 'package:catodo/features/presentation/views/focus_form/focus_time_input_widget.dart';
-import 'package:catodo/features/presentation/viewmodels/form_state.dart';
+import 'package:catodo/theme/tds_colors.dart';
+import 'package:catodo/theme/tds_metrics.dart';
+import 'package:catodo/widgets/tds/tds_bottom_cta.dart';
+import 'package:catodo/widgets/tds/tds_button.dart';
+import 'package:catodo/widgets/tds/tds_icon_button.dart';
+import 'package:catodo/widgets/tds/tds_navigation.dart';
 
+/// 집중을 시작하기 전 무엇을·얼마나 할지 정하는 화면.
+///
+/// 우주 배경 위에 시트가 올라오는 형태라, 시트만 아래에서 밀어 올리고
+/// 배경은 그대로 둔다.
 class FocusForm extends StatefulWidget {
   const FocusForm({super.key});
 
@@ -18,109 +29,145 @@ class _FocusFormState extends State<FocusForm>
   late final Animation<Offset> _offsetAnimation;
   late final bool Function() _backHandler;
 
+  int _duration = FormManager.instance.state.duration;
+
   @override
   void initState() {
     super.initState();
+
     _backHandler = () {
       _dismissToHome();
       return true;
     };
     AppBackDispatcher.instance.push(_backHandler);
+    FormManager.instance.addListener(_onFormStateChanged);
 
     _controller = AnimationController(
-      duration: const Duration(milliseconds: 300),
+      duration: TdsMotion.sheet,
       vsync: this,
     );
     _offsetAnimation = Tween<Offset>(
       begin: const Offset(0, 1),
       end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: _controller,
-      curve: Curves.easeOut,
-    ));
+    ).animate(
+      CurvedAnimation(parent: _controller, curve: TdsMotion.emphasized),
+    );
     _controller.forward();
   }
 
   @override
   void dispose() {
     AppBackDispatcher.instance.remove(_backHandler);
+    FormManager.instance.removeListener(_onFormStateChanged);
     _controller.dispose();
-
     super.dispose();
   }
 
+  void _onFormStateChanged(FocusFormState state) {
+    if (!mounted || state.duration == _duration) return;
+    setState(() => _duration = state.duration);
+  }
+
   void _dismissToHome() {
-    _controller.reverse().then((_) {
-      TimerManager.instance.cancel();
-    });
+    FocusManager.instance.primaryFocus?.unfocus();
+    _controller.reverse().then((_) => TimerManager.instance.cancel());
   }
 
   void _handleDragEnd(DragEndDetails details) {
-    if (details.primaryVelocity! > 300) {
-      // 아래로 스와이프 속도가 300 이상일 때
-      _dismissToHome();
-    }
+    // 아래로 빠르게 스와이프하면 닫는다.
+    if ((details.primaryVelocity ?? 0) > 300) _dismissToHome();
+  }
+
+  void _start() {
+    FocusManager.instance.primaryFocus?.unfocus();
+    FormManager.instance.addLatestActivity();
+    TimerManager.instance.readyToFocus();
   }
 
   @override
   Widget build(BuildContext context) {
-    return SlideTransition(
-      position: _offsetAnimation,
-      child: GestureDetector(
-        onVerticalDragEnd: _handleDragEnd,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            IntrinsicHeight(
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Color(0xFF0D1B2A).withValues(alpha: 0.9),
-                  borderRadius:
-                      const BorderRadius.vertical(top: Radius.circular(16)),
-                ),
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Center(
-                      child: Container(
-                        width: 40,
-                        height: 4,
-                        margin: const EdgeInsets.only(bottom: 16),
-                        decoration: BoxDecoration(
-                          color: Theme.of(context)
-                              .colorScheme
-                              .onSurface
-                              .withValues(alpha: 0.2),
-                          borderRadius: BorderRadius.circular(2),
-                        ),
-                      ),
-                    ),
-                    const FocusActivityInputWidget(),
-                    const SizedBox(height: 16),
-                    const FocusTimeInputWidget(),
-                    const SizedBox(height: 16),
-                    FilledButton(
-                      onPressed: () {
-                        if (FormManager.instance.state.isFocused) {
-                          final currentFocus = FocusScope.of(context);
-                          currentFocus.unfocus();
-                          return;
-                        }
-                        TimerManager.instance.readyToFocus();
-                      },
-                      style: FilledButton.styleFrom(
-                        backgroundColor: Color(0xFF3A86FF),
-                        padding: const EdgeInsets.symmetric(vertical: 15),
-                      ),
-                      child: const Text('시작하기'),
-                    ),
-                  ],
+    return Padding(
+      padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
+      child: Column(
+        children: [
+          TdsNavigation(
+            transparent: true,
+            onBack: _dismissToHome,
+            rightItems: [
+              TdsIconButton(
+                icon: const Icon(Icons.bar_chart_rounded),
+                size: TdsIconButtonSize.l,
+                variant: TdsIconButtonVariant.clear,
+                color: TdsColors.onCanvasIcon,
+                semanticLabel: '기록 보기',
+                onPressed: () => TimerManager.instance.goToStats(),
+              ),
+            ],
+          ),
+          Expanded(
+            child: Align(
+              alignment: Alignment.bottomCenter,
+              child: SingleChildScrollView(
+                child: GestureDetector(
+                  onVerticalDragEnd: _handleDragEnd,
+                  child: SlideTransition(
+                    position: _offsetAnimation,
+                    child: _buildSheet(),
+                  ),
                 ),
               ),
             ),
-          ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSheet() {
+    return Container(
+      decoration: const BoxDecoration(
+        color: TdsColors.background,
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(TdsRadius.sheet),
         ),
+      ),
+      padding: const EdgeInsets.only(bottom: 4),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const Padding(
+            padding: EdgeInsets.only(top: 10),
+            child: Center(child: _SheetHandle()),
+          ),
+          const FocusActivityInputWidget(),
+          const FocusTimeInputWidget(),
+          TdsBottomCta(
+            gradient: false,
+            child: TdsButton(
+              label: '시작하기',
+              size: TdsButtonSize.xl,
+              fullWidth: true,
+              onPressed: _duration > 0 ? _start : null,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SheetHandle extends StatelessWidget {
+  const _SheetHandle();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 36,
+      height: 4,
+      decoration: BoxDecoration(
+        color: TdsColors.fillNeutralWeak,
+        borderRadius: BorderRadius.circular(TdsRadius.full),
       ),
     );
   }

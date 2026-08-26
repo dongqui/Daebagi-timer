@@ -146,7 +146,7 @@ class DateHelper {
         return '${_formatDate(range.start)} ~ ${_formatDate(range.end)}';
 
       case DateUnit.month:
-        return '${_getMonthName(range.start.month)}, ${range.start.year}';
+        return '${range.start.year}.${range.start.month.toString().padLeft(2, '0')}';
 
       case DateUnit.year:
         return '${range.start.year}';
@@ -156,25 +156,6 @@ class DateHelper {
   /// 날짜를 'yyyy.MM.dd' 형식으로 포맷
   static String _formatDate(DateTime date) {
     return '${date.year}.${date.month.toString().padLeft(2, '0')}.${date.day.toString().padLeft(2, '0')}';
-  }
-
-  /// 월 이름 반환
-  static String _getMonthName(int month) {
-    final months = [
-      'January',
-      'February',
-      'March',
-      'April',
-      'May',
-      'June',
-      'July',
-      'August',
-      'September',
-      'October',
-      'November',
-      'December'
-    ];
-    return months[month - 1];
   }
 
   /// Firestore 타임스탬프를 DateTime으로 변환

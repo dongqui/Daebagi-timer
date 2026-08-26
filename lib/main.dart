@@ -3,6 +3,7 @@ import 'package:wakelock_plus/wakelock_plus.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:catodo/core/init_db.dart';
 import 'package:catodo/core/navigation/navigator_key.dart';
+import 'package:catodo/theme/app_theme.dart';
 import 'features/presentation/views/splash_screen.dart';
 import 'features/presentation/views/main_screen.dart';
 import 'features/presentation/viewmodels/resource_version_state.dart';
@@ -30,6 +31,10 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   bool _isInitialized = false;
+
+  /// 인트로가 홈으로 넘겨주는 연출까지 끝났는지.
+  /// 초기화 완료와 분리해 둬야 인트로가 중간에 잘리지 않는다.
+  bool _splashFinished = false;
 
   @override
   void initState() {
@@ -60,12 +65,13 @@ class _MyAppState extends State<MyApp> {
       // TODO: https://docs.flutter.dev/ui/accessibility-and-internationalization/internationalization#localizing-for-ios-updating-the-ios-app-bundle
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-            seedColor: Color(0xFF3A86FF)), // 보라색에서 파란색으로 변경
-        useMaterial3: true,
-      ),
-      home: _isInitialized ? MainScreen() : SplashScreen(),
+      theme: AppTheme.dark,
+      home: _splashFinished
+          ? MainScreen()
+          : SplashScreen(
+              isReady: _isInitialized,
+              onFinished: () => setState(() => _splashFinished = true),
+            ),
     );
   }
 }

@@ -1,182 +1,204 @@
-import 'package:catodo/core/utils/sprite_loader.dart';
-import 'package:catodo/features/presentation/viewmodels/characater_state.dart';
-import 'package:flutter/material.dart';
-import 'package:flame/widgets.dart';
 import 'package:flame/components.dart';
 import 'package:flame/sprite.dart';
+import 'package:flame/widgets.dart';
+import 'package:flutter/material.dart';
 
+import 'package:catodo/core/utils/sprite_loader.dart';
+import 'package:catodo/features/data/models/character.dart';
+import 'package:catodo/features/presentation/viewmodels/characater_state.dart';
+import 'package:catodo/theme/tds_colors.dart';
+import 'package:catodo/theme/tds_metrics.dart';
+import 'package:catodo/theme/tds_typography.dart';
+import 'package:catodo/widgets/tds/tds_button.dart';
+import 'package:catodo/widgets/tds/tds_icon_button.dart';
+import 'package:catodo/widgets/tds/tds_loader.dart';
+import 'package:catodo/widgets/tds/tds_navigation.dart';
+
+/// 함께 여행할 캐릭터를 고르는 화면.
+///
+/// 가운데 캐릭터만 travel 애니메이션으로 크게 움직이고, 양옆은 작게 idle로 대기한다.
 class CharacterSelectors extends StatefulWidget {
-  final VoidCallback onClose;
   const CharacterSelectors({super.key, required this.onClose});
+
+  final VoidCallback onClose;
 
   @override
   State<CharacterSelectors> createState() => _CharacterSelectorsState();
 }
 
 class _CharacterSelectorsState extends State<CharacterSelectors> {
-  late CharacterState _characterState;
   final _characterManager = CharacterManager.instance;
-  late List<SpriteAnimation> _characterTravelAnimations = [];
-  late List<SpriteAnimation> _characterIdleAnimations = [];
-  late String _selectedCharacterName = '';
-  late PageController _pageController;
+
+  late CharacterState _characterState = _characterManager.state;
+  PageController? _pageController;
+  List<SpriteAnimation> _travelAnimations = const [];
+  List<SpriteAnimation> _idleAnimations = const [];
+  String _selectedCharacterName = '';
 
   @override
   void initState() {
     super.initState();
-    _characterState = _characterManager.state;
     _characterManager.addListener(_handleCharacterStateChanged);
-
-    initData();
+    _initData();
   }
 
   @override
   void dispose() {
     _characterManager.removeListener(_handleCharacterStateChanged);
+    _pageController?.dispose();
     super.dispose();
   }
 
-  void _handleCharacterStateChanged(
-      CharacterState state, CharacterState? oldState) {
-    setState(() {
-      _characterState = state;
-    });
+  void _handleCharacterStateChanged(CharacterState state, CharacterState? _) {
+    if (mounted) setState(() => _characterState = state);
   }
 
-  initData() async {
+  Future<void> _initData() async {
     await Future.wait([
       _characterManager.initSelectedCharacter(),
       _characterManager.getCharacterList(),
     ]);
-    // 선택된 케릭터 이름 초기화
+    if (!mounted) return;
+
     _selectedCharacterName = _characterState.selectedCharacter?.name ?? '';
 
-    // init pageView page
-    final selectedIndex = _characterState.characterList.indexWhere(
-      (c) => c.name == _selectedCharacterName,
+    // 목록에 없으면(선택 이력이 없을 때) 첫 캐릭터부터 보여준다.
+    final selectedIndex = _characterState.characterList
+        .indexWhere((c) => c.name == _selectedCharacterName);
+    _pageController = PageController(
+      viewportFraction: 0.4,
+      initialPage: selectedIndex < 0 ? 0 : selectedIndex,
     );
 
-    //선택된 케릭터로 페이지 초기화
-    _pageController =
-        PageController(viewportFraction: 0.4, initialPage: selectedIndex);
+    final travel = await _loadAnimations(travelling: true);
+    final idle = await _loadAnimations(travelling: false);
+    if (!mounted) return;
 
-// 애니메이션 생성
-    _characterTravelAnimations =
-        await Future.wait(_characterState.characterList.map((character) async {
-      final sprites = await loadSprite(character.travelSprite);
+    setState(() {
+      _travelAnimations = travel;
+      _idleAnimations = idle;
+    });
+  }
 
-      final frames = character.travelframes
-          .map((index) => Sprite(
-                sprites,
-                srcSize: Vector2(256, 256),
-                srcPosition: Vector2(index * 256, 0),
-              ))
-          .toList();
-      return SpriteAnimation.spriteList(
-        frames,
-        stepTime: 0.2,
-      );
-    }));
-    _characterIdleAnimations =
-        await Future.wait(_characterState.characterList.map((character) async {
-      final sprites = await loadSprite(character.idleSprite);
-      final frames = character.idleFrames
-          .map((index) => Sprite(
-                sprites,
-                srcSize: Vector2(256, 256),
-                srcPosition: Vector2(index * 256, 0),
-              ))
-          .toList();
-      return SpriteAnimation.spriteList(frames, stepTime: 0.2);
-    }));
+  Future<List<SpriteAnimation>> _loadAnimations({required bool travelling}) {
+    return Future.wait(
+      _characterState.characterList.map((character) async {
+        final sheet = await loadSprite(
+          travelling ? character.travelSprite : character.idleSprite,
+        );
+        final frames = (travelling ? character.travelframes : character.idleFrames)
+            .map((index) => Sprite(
+                  sheet,
+                  srcSize: Vector2(256, 256),
+                  srcPosition: Vector2(index * 256, 0),
+                ))
+            .toList();
+        return SpriteAnimation.spriteList(frames, stepTime: 0.2);
+      }),
+    );
+  }
 
-    setState(() {});
+  /// 지금 가운데에 있는 캐릭터.
+  Character? get _selectedCharacter => _characterState.characterList
+      .where((c) => c.name == _selectedCharacterName)
+      .firstOrNull;
+
+  Future<void> _confirm() async {
+    final character = _selectedCharacter;
+    if (character != null) {
+      await _characterManager.updateCharacter(character);
+    }
+    widget.onClose();
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_characterState.characterList.isEmpty ||
-        _characterTravelAnimations.isEmpty ||
-        _characterIdleAnimations.isEmpty) {
-      return const Center(child: Text(''));
-    }
-    return Stack(
-      children: [
-        SizedBox(
-          child: PageView.builder(
-            itemCount: _characterState.characterList.length,
-            controller: _pageController,
-            onPageChanged: (index) {
-              _selectedCharacterName =
-                  _characterState.characterList[index].name;
-              setState(() {});
-            },
-            itemBuilder: (context, index) {
-              final character = _characterState.characterList[index];
-              final isSelected = _selectedCharacterName == character.name;
+    final controller = _pageController;
+    final ready = controller != null &&
+        _characterState.characterList.isNotEmpty &&
+        _travelAnimations.isNotEmpty &&
+        _idleAnimations.isNotEmpty;
 
-              return AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                margin: EdgeInsets.symmetric(
-                    horizontal: 8, vertical: isSelected ? 0 : 20),
-                child: GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      _selectedCharacterName = character.name;
-                      _pageController.animateToPage(
-                        index,
-                        duration: const Duration(milliseconds: 200),
-                        curve: Curves.easeInOut,
-                      );
-                    });
-                  },
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      SizedBox(
-                        width: isSelected ? 128 : 64,
-                        height: isSelected ? 128 : 64,
-                        child: isSelected
-                            ? SpriteAnimationWidget(
-                                animation: _characterTravelAnimations[index],
-                                animationTicker: SpriteAnimationTicker(
-                                    _characterTravelAnimations[index]),
-                              )
-                            : SpriteAnimationWidget(
-                                animation: _characterIdleAnimations[index],
-                                animationTicker: SpriteAnimationTicker(
-                                    _characterIdleAnimations[index])),
-                      ),
-                    ],
-                  ),
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        // 별을 깔면 캐릭터 스프라이트가 묻혀서 검정으로 둔다.
+        const ColoredBox(color: TdsColors.canvas),
+        if (!ready)
+          const Center(child: TdsLoader())
+        else
+          Column(
+            children: [
+              TdsNavigation(
+                transparent: true,
+                leading: TdsIconButton(
+                  icon: const Icon(Icons.close_rounded),
+                  size: TdsIconButtonSize.l,
+                  variant: TdsIconButtonVariant.clear,
+                  color: TdsColors.onCanvasIcon,
+                  semanticLabel: '닫기',
+                  onPressed: widget.onClose,
                 ),
-              );
-            },
+              ),
+              Expanded(child: _buildCarousel(controller)),
+              Text(
+                _selectedCharacter?.label ?? '',
+                style: TdsText.subtitle.copyWith(
+                  color: TdsColors.onCanvasStrong,
+                ),
+              ),
+              const SizedBox(height: 24),
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: TdsSpacing.pageMarginS,
+                ),
+                child: TdsButton(
+                  label: '선택',
+                  size: TdsButtonSize.xl,
+                  fullWidth: true,
+                  onPressed: _confirm,
+                ),
+              ),
+              SizedBox(height: 24 + MediaQuery.paddingOf(context).bottom),
+            ],
           ),
-        ),
-        Positioned(
-          bottom: MediaQuery.of(context).size.height * 0.25,
-          left: 0,
-          right: 0,
+      ],
+    );
+  }
+
+  Widget _buildCarousel(PageController controller) {
+    return PageView.builder(
+      controller: controller,
+      itemCount: _characterState.characterList.length,
+      onPageChanged: (index) => setState(
+        () => _selectedCharacterName = _characterState.characterList[index].name,
+      ),
+      itemBuilder: (context, index) {
+        final character = _characterState.characterList[index];
+        final isSelected = _selectedCharacterName == character.name;
+        final animation =
+            isSelected ? _travelAnimations[index] : _idleAnimations[index];
+
+        return GestureDetector(
+          onTap: () => controller.animateToPage(
+            index,
+            duration: TdsMotion.base,
+            curve: TdsMotion.standard,
+          ),
           child: Center(
-            child: SizedBox(
-              width: 120,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                ),
-                onPressed: () async {
-                  await _characterManager.updateCharacter(
-                      _characterState.characterList.firstWhere((character) =>
-                          character.name == _selectedCharacterName));
-                  widget.onClose();
-                },
-                child: const Text('너로 정했다!'),
+            child: AnimatedContainer(
+              duration: TdsMotion.base,
+              curve: TdsMotion.standard,
+              width: isSelected ? 128 : 64,
+              height: isSelected ? 128 : 64,
+              child: SpriteAnimationWidget(
+                animation: animation,
+                animationTicker: SpriteAnimationTicker(animation),
               ),
             ),
           ),
-        ),
-      ],
+        );
+      },
     );
   }
 }

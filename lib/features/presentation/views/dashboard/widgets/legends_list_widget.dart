@@ -1,11 +1,16 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 
+import 'package:catodo/theme/tds_colors.dart';
+import 'package:catodo/theme/tds_typography.dart';
+
+/// 차트 위에 붙는 활동별 범례 한 칸.
 class LegendWidget extends StatelessWidget {
   const LegendWidget({
     super.key,
     required this.name,
     required this.color,
   });
+
   final String name;
   final Color color;
 
@@ -15,19 +20,19 @@ class LegendWidget extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         Container(
-          width: 10,
-          height: 10,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: color,
-          ),
+          width: 8,
+          height: 8,
+          decoration: BoxDecoration(shape: BoxShape.circle, color: color),
         ),
         const SizedBox(width: 6),
-        Text(
-          name,
-          style: const TextStyle(
-            color: Color(0xffffffff),
-            fontSize: 12,
+        Flexible(
+          child: Text(
+            name,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TdsText.captionMedium.copyWith(
+              color: TdsColors.onCanvasHigh,
+            ),
           ),
         ),
       ],
@@ -36,30 +41,26 @@ class LegendWidget extends StatelessWidget {
 }
 
 class LegendsListWidget extends StatelessWidget {
-  const LegendsListWidget({
-    super.key,
-    required this.legends,
-  });
+  const LegendsListWidget({super.key, required this.legends});
+
   final List<Legend> legends;
 
   @override
   Widget build(BuildContext context) {
     return Wrap(
       spacing: 16,
-      children: legends
-          .map(
-            (e) => LegendWidget(
-              name: e.name,
-              color: e.color,
-            ),
-          )
-          .toList(),
+      runSpacing: 4,
+      children: [
+        for (final legend in legends)
+          LegendWidget(name: legend.name, color: legend.color),
+      ],
     );
   }
 }
 
 class Legend {
-  Legend(this.name, this.color);
+  const Legend(this.name, this.color);
+
   final String name;
   final Color color;
 }
