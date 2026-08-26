@@ -151,6 +151,35 @@ void main() {
       expect(selected, '월');
     });
 
+    testWidgets('내비게이션 액션은 오른쪽 끝을 비워 둔다', (tester) async {
+      // 오른쪽 위는 토스 네비게이션 바(더보기·닫기)가 차지한다. 미니앱이 끌 수
+      // 없는 영역이라, 우리 버튼이 거기로 가면 둘이 위아래로 겹쳐 보인다.
+      await _pump(
+        tester,
+        TdsNavigation(
+          title: '집중 기록',
+          leading: TdsIconButton(
+            icon: const Icon(Icons.close_rounded),
+            onPressed: () {},
+          ),
+          leftItems: [
+            TdsIconButton(
+              icon: const Icon(Icons.edit_rounded),
+              semanticLabel: '캐릭터 꾸미기',
+              onPressed: () {},
+            ),
+          ],
+        ),
+      );
+
+      final action = tester.getRect(find.bySemanticsLabel('캐릭터 꾸미기'));
+      expect(
+        action.right,
+        lessThan(375 / 2),
+        reason: '화면 액션은 왼쪽 절반 안에 있어야 한다',
+      );
+    });
+
     testWidgets('내비게이션 · 리스트 · 구분선', (tester) async {
       await _pump(
         tester,
@@ -159,7 +188,7 @@ void main() {
             TdsNavigation(
               title: '집중 기록',
               showBack: false,
-              rightItems: [
+              leftItems: [
                 TdsIconButton(
                   icon: const Icon(Icons.edit_rounded),
                   onPressed: () {},

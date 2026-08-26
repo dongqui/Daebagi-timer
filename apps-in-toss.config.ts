@@ -14,9 +14,8 @@ export default defineConfig({
     withTitle: false,
     // 불투명(false)으로 두면 토스가 네비게이션 바 자리를 비워주지만, 그 바의
     // 배경색과 우리 별밭 배경이 만나는 지점에 또렷한 경계선이 생긴다.
-    // 투명하게 두면 배경이 화면 끝까지 이어진다. 대신 콘텐츠가 네비게이션 바
-    // 아래로 파고들므로, 그만큼의 여백은 `lib/core/toss_safe_area_web.dart`의
-    // kTossNavigationBarHeight로 우리가 직접 비운다.
+    // 투명하게 두면 배경이 화면 끝까지 이어진다. 토스가 실제로 쓰는 건 그 줄의
+    // 오른쪽 끝(더보기·닫기)뿐이라, 같은 줄 왼쪽은 우리 버튼 자리로 쓴다.
     transparentBackground: true,
     theme: "dark",
   },

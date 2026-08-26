@@ -93,7 +93,7 @@ class _FocusFormState extends State<FocusForm>
           TdsNavigation(
             transparent: true,
             onBack: _dismissToHome,
-            rightItems: [
+            leftItems: [
               TdsIconButton(
                 icon: const Icon(Icons.bar_chart_rounded),
                 size: TdsIconButtonSize.l,

@@ -7,6 +7,10 @@ import 'package:catodo/theme/tds_metrics.dart';
 ///
 /// 디자인의 목업 상태 표시줄 대신 실제 안전 영역만큼 위를 띄운다.
 /// 게임 캔버스 위에 얹을 때는 [transparent]를 켜서 배경을 비운다.
+///
+/// **오른쪽 끝은 비워 둔다.** 앱인토스 네비게이션 바가 이 줄과 같은 높이에
+/// 더보기(...)·닫기(X)를 그리는데, 그건 미니앱이 끌 수 없는 토스 고정 영역이다.
+/// 우리 버튼은 [leading]과 [leftItems]로 왼쪽에만 놓는다.
 class TdsNavigation extends StatelessWidget {
   const TdsNavigation({
     super.key,
@@ -14,7 +18,7 @@ class TdsNavigation extends StatelessWidget {
     this.showBack = true,
     this.onBack,
     this.leading,
-    this.rightItems = const [],
+    this.leftItems = const [],
     this.transparent = false,
     this.includeStatusBar = true,
   });
@@ -27,7 +31,10 @@ class TdsNavigation extends StatelessWidget {
   /// 지정하면 [showBack]보다 우선한다.
   final Widget? leading;
 
-  final List<Widget> rightItems;
+  /// [leading] 오른쪽에 이어 붙일 버튼들. 화면 액션은 전부 여기로 온다 —
+  /// 오른쪽 끝은 토스 네비게이션 바 차지라 쓸 수 없다.
+  final List<Widget> leftItems;
+
   final bool transparent;
 
   /// 상단 안전 영역만큼 여백을 더할지. 스크롤 뷰 안에 넣을 때는 끈다.
@@ -69,6 +76,10 @@ class TdsNavigation extends StatelessWidget {
               )
             else
               const SizedBox.square(dimension: TdsSize.iconButtonL),
+            for (final item in leftItems) ...[
+              const SizedBox(width: TdsSpacing.gapS),
+              item,
+            ],
             Expanded(
               child: title == null
                   ? const SizedBox.shrink()
@@ -84,10 +95,7 @@ class TdsNavigation extends StatelessWidget {
                       ),
                     ),
             ),
-            for (final item in rightItems) ...[
-              item,
-              const SizedBox(width: TdsSpacing.gapM),
-            ],
+            // 오른쪽은 토스 네비게이션 바에 내준다.
             const SizedBox(width: 2),
           ],
         ),

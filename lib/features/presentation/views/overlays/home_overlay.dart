@@ -64,9 +64,10 @@ class HomeOverlayState extends State<HomeOverlay>
             onTap: () => TimerManager.instance.setFocus(),
           ),
         ),
+        // 오른쪽 위는 토스 네비게이션 바(더보기·닫기) 자리라 왼쪽에 붙인다.
         Positioned(
           top: MediaQuery.paddingOf(context).top + 8,
-          right: 16,
+          left: 16,
           child: TdsGlassPanel(
             child: TdsIconButton(
               icon: const Icon(Icons.menu_rounded),

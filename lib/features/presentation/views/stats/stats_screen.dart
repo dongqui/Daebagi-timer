@@ -86,7 +86,7 @@ class _StatsScreenState extends State<StatsScreen> {
               semanticLabel: '닫기',
               onPressed: widget.onClose,
             ),
-            rightItems: [
+            leftItems: [
               TdsIconButton(
                 icon: const Icon(Icons.edit_rounded),
                 size: TdsIconButtonSize.l,

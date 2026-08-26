@@ -93,6 +93,20 @@ void main() {
       expect(tester.takeException(), isNull);
     });
 
+    testWidgets('상단 버튼이 토스 네비게이션 바 자리를 비켜 있다', (tester) async {
+      // 오른쪽 위는 앱인토스가 더보기(...)·닫기(X)를 그리는 자리다. 미니앱이 끌
+      // 수 없어서, 우리 버튼이 거기 있으면 둘이 위아래로 겹쳐 보인다.
+      await _pumpStats(tester);
+
+      for (final label in ['닫기', '캐릭터 꾸미기']) {
+        expect(
+          tester.getRect(find.bySemanticsLabel(label)).right,
+          lessThan(375 / 2),
+          reason: '$label 버튼은 왼쪽 절반 안에 있어야 한다',
+        );
+      }
+    });
+
     testWidgets('일/주/월/년을 모두 골라도 레이아웃이 버틴다', (tester) async {
       await _pumpStats(tester);
 
