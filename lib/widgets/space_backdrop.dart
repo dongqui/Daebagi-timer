@@ -6,8 +6,8 @@ import 'package:flutter/widgets.dart';
 /// 화면마다 배경이 들쭉날쭉하다. 집중 폼과 완료 화면은 배경이 결정적이어야 하므로
 /// 게임에 기대지 않고 같은 별 에셋으로 직접 그린다.
 ///
-/// 별 레이어는 `SpaceMap`이 쓰는 것과 같은 parallax PNG 3장이다. 투명 배경에
-/// 별만 찍혀 있어서 어두운 그라디언트 위에 겹쳐 쌓으면 밀도가 생긴다.
+/// 별 레이어는 `SpaceMap`이 쓰는 것과 같은 parallax PNG다. 투명 배경에 별만
+/// 찍혀 있어서 어두운 그라디언트 위에 겹쳐 쌓으면 밀도가 생긴다.
 class SpaceBackdrop extends StatelessWidget {
   const SpaceBackdrop({
     super.key,
@@ -26,11 +26,17 @@ class SpaceBackdrop extends StatelessWidget {
 
   final Widget? child;
 
+  /// (에셋, 정렬, 불투명도, 좌우반전) — 같은 이미지를 다르게 앉혀 별이 겹쳐
+  /// 보이지 않게 한다.
+  ///
+  /// 세 번째 parallax 레이어(`stars_top.png`)에는 보라색 행성이 그려져 있다.
+  /// 게임 월드에서는 흘러가는 배경의 일부라 자연스럽지만, 정지해 있는 인트로와
+  /// 오버레이 배경에서는 화면 위쪽에 못 박힌 것처럼 보여서 쓰지 않는다.
+  /// 대신 남은 두 장 중 하나를 좌우로 뒤집어 겹쳐 밀도를 채운다.
   static const _layers = [
-    // (에셋, 정렬, 불투명도) — 같은 이미지를 다르게 앉혀 별이 겹쳐 보이지 않게 한다.
-    ('assets/images/parallax/stars_bot.png', Alignment.bottomCenter, 0.55),
-    ('assets/images/parallax/stars_mid.png', Alignment.center, 0.75),
-    ('assets/images/parallax/stars_top.png', Alignment.topLeft, 1.0),
+    ('assets/images/parallax/stars_bot.png', Alignment.bottomCenter, 0.55, false),
+    ('assets/images/parallax/stars_mid.png', Alignment.center, 0.85, false),
+    ('assets/images/parallax/stars_mid.png', Alignment.centerRight, 0.7, true),
   ];
 
   @override
@@ -42,7 +48,7 @@ class SpaceBackdrop extends StatelessWidget {
             : MediaQuery.sizeOf(context).width;
 
         // 별 레이어 원본은 2752x2064다. 그대로 디코딩하면 장당 20MB가 넘는
-        // 비트맵이 세 개 뜨므로, 화면 폭에 맞춰 줄여서 읽는다.
+        // 비트맵이 뜨므로, 화면 폭에 맞춰 줄여서 읽는다.
         final decodeWidth =
             (width * MediaQuery.devicePixelRatioOf(context)).round();
 
@@ -58,16 +64,19 @@ class SpaceBackdrop extends StatelessWidget {
                 ),
               ),
             ),
-            for (final (asset, alignment, opacity) in _layers)
+            for (final (asset, alignment, opacity, flip) in _layers)
               Opacity(
                 opacity: opacity,
-                child: Image.asset(
-                  asset,
-                  fit: BoxFit.cover,
-                  alignment: alignment,
-                  cacheWidth: decodeWidth,
-                  filterQuality: FilterQuality.low,
-                  excludeFromSemantics: true,
+                child: Transform.scale(
+                  scaleX: flip ? -1 : 1,
+                  child: Image.asset(
+                    asset,
+                    fit: BoxFit.cover,
+                    alignment: alignment,
+                    cacheWidth: decodeWidth,
+                    filterQuality: FilterQuality.low,
+                    excludeFromSemantics: true,
+                  ),
                 ),
               ),
             if (moon)

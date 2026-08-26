@@ -12,12 +12,12 @@ export default defineConfig({
     withBackButton: false,
     withHomeButton: false,
     withTitle: false,
-    // 투명(true)으로 두면 콘텐츠가 네비게이션 바 아래로 파고들어, 우리 메뉴 버튼이
-    // 토스의 더보기(...)·닫기(X)와 겹친다. 불투명으로 두면 토스가 그만큼 자리를
-    // 비워주므로 화면 전체가 그 아래에서 시작한다.
-    // 전체화면 느낌을 되찾고 싶으면 true로 바꾸되, 상단 요소들을 네비게이션 바
-    // 높이만큼 따로 내려야 한다.
-    transparentBackground: false,
+    // 불투명(false)으로 두면 토스가 네비게이션 바 자리를 비워주지만, 그 바의
+    // 배경색과 우리 별밭 배경이 만나는 지점에 또렷한 경계선이 생긴다.
+    // 투명하게 두면 배경이 화면 끝까지 이어진다. 대신 콘텐츠가 네비게이션 바
+    // 아래로 파고들므로, 그만큼의 여백은 `lib/core/toss_safe_area_web.dart`의
+    // kTossNavigationBarHeight로 우리가 직접 비운다.
+    transparentBackground: true,
     theme: "dark",
   },
   permissions: [],

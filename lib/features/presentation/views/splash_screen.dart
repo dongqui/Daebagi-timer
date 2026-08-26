@@ -101,79 +101,83 @@ class _SplashScreenState extends State<SplashScreen>
       // 게임 월드와 같은 별 에셋을 깔아 인트로부터 우주로 이어지게 한다.
       // 검정 배경에서는 캐릭터가 허공에 뜬 것처럼 보였다.
       body: SpaceBackdrop(
-        child: Stack(
-          children: [
-            Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Flexible(
-                      child: AnimatedBuilder(
-                    animation: Listenable.merge([introCurve, handoffCurve]),
-                    builder: (context, child) {
-                      final intro = introCurve.value;
-                      final exit = handoffCurve.value;
-                      return Opacity(
-                        opacity: intro * (1 - exit),
-                        child: Transform.translate(
-                          offset: Offset(0, 14 * (1 - intro) + 168 * exit),
-                          child: Transform.scale(
-                            scale: (0.94 + 0.06 * intro) * (1 - 0.76 * exit),
-                            child: child,
-                          ),
+        child: SafeArea(
+          child: Column(
+            children: [
+              Expanded(
+                child: Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Flexible(
+                          child: AnimatedBuilder(
+                        animation: Listenable.merge([introCurve, handoffCurve]),
+                        builder: (context, child) {
+                          final intro = introCurve.value;
+                          final exit = handoffCurve.value;
+                          return Opacity(
+                            opacity: intro * (1 - exit),
+                            child: Transform.translate(
+                              offset: Offset(0, 14 * (1 - intro) + 168 * exit),
+                              child: Transform.scale(
+                                scale: (0.94 + 0.06 * intro) * (1 - 0.76 * exit),
+                                child: child,
+                              ),
+                            ),
+                          );
+                        },
+                        child: Image.asset(
+                          'assets/images/dog_cutout.webp',
+                          width: 210,
+                          fit: BoxFit.contain,
+                          filterQuality: FilterQuality.medium,
                         ),
-                      );
-                    },
-                    child: Image.asset(
-                      'assets/images/dog_cutout.webp',
-                      width: 210,
-                      fit: BoxFit.contain,
-                      filterQuality: FilterQuality.medium,
-                    ),
-                  )),
-                  const SizedBox(height: 26),
-                  AnimatedBuilder(
-                    animation: Listenable.merge([introCurve, _handoff]),
-                    builder: (context, child) {
-                      // 글자는 캐릭터보다 빨리 빠진다 (300ms / 700ms).
-                      final exit =
-                          (_handoff.value / (300 / 700)).clamp(0.0, 1.0);
-                      return Opacity(
-                        opacity: introCurve.value * (1 - exit),
-                        child: Transform.translate(
-                          offset: Offset(0, 14 * (1 - introCurve.value)),
-                          child: child,
+                      )),
+                      const SizedBox(height: 26),
+                      AnimatedBuilder(
+                        animation: Listenable.merge([introCurve, _handoff]),
+                        builder: (context, child) {
+                          // 글자는 캐릭터보다 빨리 빠진다 (300ms / 700ms).
+                          final exit =
+                              (_handoff.value / (300 / 700)).clamp(0.0, 1.0);
+                          return Opacity(
+                            opacity: introCurve.value * (1 - exit),
+                            child: Transform.translate(
+                              offset: Offset(0, 14 * (1 - introCurve.value)),
+                              child: child,
+                            ),
+                          );
+                        },
+                        child: const Column(
+                          children: [
+                            Text('대박이 타이머', style: TdsText.title),
+                            SizedBox(height: TdsSpacing.gapM),
+                            Text(
+                              '대박이와 함께 집중해요',
+                              style: TextStyle(
+                                fontSize: 15,
+                                height: 22.5 / 15,
+                                color: TdsColors.onCanvasLow,
+                              ),
+                            ),
+                          ],
                         ),
-                      );
-                    },
-                    child: const Column(
-                      children: [
-                        Text('대박이 타이머', style: TdsText.title),
-                        SizedBox(height: TdsSpacing.gapM),
-                        Text(
-                          '대박이와 함께 집중해요',
-                          style: TextStyle(
-                            fontSize: 15,
-                            height: 22.5 / 15,
-                            color: TdsColors.onCanvasLow,
-                          ),
-                        ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
-            ),
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 80,
-              child: FadeTransition(
-                opacity: ReverseAnimation(handoffCurve),
-                child: const Center(child: TdsLoader()),
+              // 로더는 레이아웃 흐름 안에 둔다. 화면 아래에 절대 배치했더니
+              // 캐릭터가 큰 화면에서 문구를 밀어 내려 로더와 겹쳤다.
+              Padding(
+                padding: const EdgeInsets.only(top: 32, bottom: 48),
+                child: FadeTransition(
+                  opacity: ReverseAnimation(handoffCurve),
+                  child: const TdsLoader(),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

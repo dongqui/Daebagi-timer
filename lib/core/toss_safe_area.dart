@@ -7,6 +7,7 @@ import 'toss_safe_area_stub.dart'
 ///
 /// Flutter Web은 웹뷰 안에서 `MediaQuery.padding`을 0으로 보고한다. 그대로 두면
 /// 상단 아이콘과 텍스트가 상태바를 뚫고 올라가고, 하단은 홈 인디케이터에 물린다.
+/// 네비게이션 바를 투명하게 띄워 두었으므로 그 높이도 여기서 함께 비운다.
 ///
 /// 화면들이 전부 `MediaQuery.paddingOf(context)`를 보고 여백을 잡으므로,
 /// 앱 최상단에서 한 번만 바꿔주면 전체가 따라온다.
