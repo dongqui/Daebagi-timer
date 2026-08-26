@@ -1,18 +1,18 @@
 final List<Character> defaultCharacters = [
   Character(
-      id: 1,
-      name: 'astronaut',
-      travelframes: [0],
-      travelSprite: 'characters/astronaut_travel.png',
-      idleSprite: 'characters/astronaut_idle.png',
-      idleFrames: [0],
-      isPremium: false),
-  Character(
       id: 2,
       name: 'dog_white',
       travelframes: [0, 1, 2, 3],
       travelSprite: 'characters/dog_white_travel.png',
       idleSprite: 'characters/dog_white_idle.png',
+      idleFrames: [0],
+      isPremium: false),
+  Character(
+      id: 1,
+      name: 'astronaut',
+      travelframes: [0],
+      travelSprite: 'characters/astronaut_travel.png',
+      idleSprite: 'characters/astronaut_idle.png',
       idleFrames: [0],
       isPremium: false),
 ];
