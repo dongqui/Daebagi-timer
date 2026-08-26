@@ -91,7 +91,6 @@ class _FocusFormState extends State<FocusForm>
       child: Column(
         children: [
           TdsNavigation(
-            transparent: true,
             onBack: _dismissToHome,
             leftItems: [
               TdsIconButton(

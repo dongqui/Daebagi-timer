@@ -18,7 +18,7 @@ import 'package:catodo/widgets/tds/tds_segmented_control.dart';
 /// 집중 기록 화면.
 ///
 /// 기간 단위를 고르고, 그 구간의 세션을 차트와 합계로 보여준다.
-/// 상단 캐릭터 영역을 누르거나 우측 상단 꾸미기 버튼을 누르면 캐릭터를 바꿀 수 있다.
+/// 상단 캐릭터 영역이나 그 위의 꾸미기 칩을 누르면 캐릭터를 바꿀 수 있다.
 class StatsScreen extends StatefulWidget {
   const StatsScreen({super.key, required this.onClose});
 
@@ -77,41 +77,48 @@ class _StatsScreenState extends State<StatsScreen> {
       color: TdsColors.backgroundLower,
       child: Column(
         children: [
-          TdsNavigation(
-            leading: TdsIconButton(
-              icon: const Icon(Icons.close_rounded),
-              size: TdsIconButtonSize.l,
-              variant: TdsIconButtonVariant.clear,
-              color: TdsColors.textStrong,
-              semanticLabel: '닫기',
-              onPressed: widget.onClose,
+          // 내비게이션 바와 캐릭터 자리를 한 덩어리 검정으로 묶는다. 바에만 다른
+          // 색을 칠하면 둘이 만나는 지점에 가로줄이 생긴다.
+          ColoredBox(
+            color: TdsColors.canvas,
+            child: Column(
+              children: [
+                TdsNavigation(
+                  leading: TdsIconButton(
+                    icon: const Icon(Icons.close_rounded),
+                    size: TdsIconButtonSize.l,
+                    variant: TdsIconButtonVariant.clear,
+                    color: TdsColors.onCanvasIcon,
+                    semanticLabel: '닫기',
+                    onPressed: widget.onClose,
+                  ),
+                ),
+                // 캐릭터만 놓고 배경은 검정으로 둔다. 별을 깔면 아래 차트
+                // 영역과 겹쳐 보여서 캐릭터가 묻힌다.
+                SizedBox(
+                  height: 150,
+                  width: double.infinity,
+                  child: Stack(
+                    children: [
+                      const Positioned.fill(child: CharacterSettingOverlay()),
+                      // 꾸미기는 내비게이션 바에서 여기로 내렸다. 바 오른쪽 끝은
+                      // 토스 더보기·닫기 자리라 우리 버튼을 둘 수 없다.
+                      Positioned(
+                        right: 16,
+                        bottom: 14,
+                        child: _DecorateChip(onPressed: _openCharacterSelectors),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
-            leftItems: [
-              TdsIconButton(
-                icon: const Icon(Icons.edit_rounded),
-                size: TdsIconButtonSize.l,
-                variant: TdsIconButtonVariant.fill,
-                color: TdsColors.textStrong,
-                semanticLabel: '캐릭터 꾸미기',
-                onPressed: _openCharacterSelectors,
-              ),
-            ],
           ),
           Expanded(
             child: ColoredBox(
               color: TdsColors.background,
               child: Column(
                 children: [
-                  // 캐릭터만 놓고 배경은 검정으로 둔다. 별을 깔면 아래 차트
-                  // 영역과 겹쳐 보여서 캐릭터가 묻힌다.
-                  const ColoredBox(
-                    color: TdsColors.canvas,
-                    child: SizedBox(
-                      height: 150,
-                      width: double.infinity,
-                      child: CharacterSettingOverlay(),
-                    ),
-                  ),
                   const TdsBorder.thick(),
                   const SizedBox(height: 8),
                   TdsSegmentedControl<DateUnit>(
@@ -209,6 +216,54 @@ class _RangeSelector extends StatelessWidget {
               onPressed: onNext,
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// 캐릭터 자리 위에 얹는 "꾸미기" 칩.
+///
+/// 디자인의 TDS Chip(size S · pill · weak)을 옮겼다. 여기서만 쓰므로 공용
+/// 위젯으로 올리지 않는다 — 다른 화면에도 생기면 그때 tds/로 승격한다.
+class _DecorateChip extends StatelessWidget {
+  const _DecorateChip({required this.onPressed});
+
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      label: '캐릭터 꾸미기',
+      // 안쪽 '꾸미기' 텍스트까지 읽히면 라벨이 겹쳐 들린다.
+      excludeSemantics: true,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onPressed,
+        child: Container(
+          height: 32,
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          decoration: BoxDecoration(
+            color: TdsColors.fillNeutralWeak,
+            borderRadius: BorderRadius.circular(999),
+          ),
+          child: const Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.edit_rounded, size: 16, color: TdsColors.onCanvasIcon),
+              SizedBox(width: 4),
+              Text(
+                '꾸미기',
+                style: TextStyle(
+                  fontSize: 13,
+                  height: 19.5 / 13,
+                  fontWeight: FontWeight.w600,
+                  color: TdsColors.onCanvasIcon,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

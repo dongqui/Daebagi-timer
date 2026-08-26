@@ -6,7 +6,9 @@ import 'package:catodo/theme/tds_metrics.dart';
 /// 화면 최상단 내비게이션 바.
 ///
 /// 디자인의 목업 상태 표시줄 대신 실제 안전 영역만큼 위를 띄운다.
-/// 게임 캔버스 위에 얹을 때는 [transparent]를 켜서 배경을 비운다.
+///
+/// **배경은 칠하지 않는다.** 화면마다 바 색이 달라지면 바로 아래 영역과 만나는
+/// 지점에 경계선이 생긴다. 부르는 쪽이 바 아래 영역과 같은 배경 위에 얹는다.
 ///
 /// **오른쪽 끝은 비워 둔다.** 앱인토스 네비게이션 바가 이 줄과 같은 높이에
 /// 더보기(...)·닫기(X)를 그리는데, 그건 미니앱이 끌 수 없는 토스 고정 영역이다.
@@ -19,7 +21,6 @@ class TdsNavigation extends StatelessWidget {
     this.onBack,
     this.leading,
     this.leftItems = const [],
-    this.transparent = false,
     this.includeStatusBar = true,
   });
 
@@ -35,8 +36,6 @@ class TdsNavigation extends StatelessWidget {
   /// 오른쪽 끝은 토스 네비게이션 바 차지라 쓸 수 없다.
   final List<Widget> leftItems;
 
-  final bool transparent;
-
   /// 상단 안전 영역만큼 여백을 더할지. 스크롤 뷰 안에 넣을 때는 끈다.
   final bool includeStatusBar;
 
@@ -45,11 +44,10 @@ class TdsNavigation extends StatelessWidget {
     final topInset =
         includeStatusBar ? MediaQuery.paddingOf(context).top : 0.0;
 
-    return Container(
-      width: double.infinity,
-      color: transparent ? null : TdsColors.background,
+    return Padding(
       padding: EdgeInsets.only(top: topInset),
       child: SizedBox(
+        width: double.infinity,
         height: 50,
         child: Row(
           children: [
@@ -111,7 +109,7 @@ class _BackChevronPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
       ..style = PaintingStyle.stroke
-      ..color = TdsColors.textStrong
+      ..color = TdsColors.onCanvasIcon
       ..strokeWidth = 2.2
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.round;

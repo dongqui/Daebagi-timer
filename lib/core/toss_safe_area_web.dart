@@ -1,6 +1,5 @@
 import 'dart:js_interop';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
 /// `web/index.html`이 로드하는 SDK 번들의 전역

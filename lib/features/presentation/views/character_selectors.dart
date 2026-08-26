@@ -130,8 +130,7 @@ class _CharacterSelectorsState extends State<CharacterSelectors> {
           Column(
             children: [
               TdsNavigation(
-                transparent: true,
-                leading: TdsIconButton(
+                    leading: TdsIconButton(
                   icon: const Icon(Icons.close_rounded),
                   size: TdsIconButtonSize.l,
                   variant: TdsIconButtonVariant.clear,

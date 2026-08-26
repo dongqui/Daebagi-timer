@@ -12,10 +12,18 @@ import 'package:catodo/theme/tds_colors.dart';
 ///
 /// 기록 화면 상단의 캐릭터 자리에 들어간다.
 class CharacterSettingOverlay extends StatefulWidget {
-  const CharacterSettingOverlay({super.key, this.size = 110});
+  const CharacterSettingOverlay({
+    super.key,
+    this.size = 110,
+    this.interactive = true,
+  });
 
   /// 캐릭터를 그릴 정사각형 한 변의 길이.
   final double size;
+
+  /// 눌러서 캐릭터를 바꿀 수 있는지. 집중 직전 준비 화면처럼 캐릭터를 보여주기만
+  /// 하는 자리에서는 끈다.
+  final bool interactive;
 
   @override
   State<CharacterSettingOverlay> createState() =>
@@ -94,19 +102,23 @@ class _CharacterSettingOverlayState extends State<CharacterSettingOverlay> {
     final animation = _idleAnimation;
     if (animation == null) return const SizedBox.shrink();
 
+    final character = Center(
+      child: SizedBox(
+        width: widget.size,
+        height: widget.size,
+        child: SpriteAnimationWidget(
+          animation: animation,
+          animationTicker: SpriteAnimationTicker(animation),
+        ),
+      ),
+    );
+
+    if (!widget.interactive) return character;
+
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: _openCharacterSelectors,
-      child: Center(
-        child: SizedBox(
-          width: widget.size,
-          height: widget.size,
-          child: SpriteAnimationWidget(
-            animation: animation,
-            animationTicker: SpriteAnimationTicker(animation),
-          ),
-        ),
-      ),
+      child: character,
     );
   }
 }

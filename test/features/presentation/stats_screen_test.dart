@@ -13,6 +13,7 @@ import 'package:catodo/features/data/repositories/selected_character_repository.
 import 'package:catodo/features/presentation/viewmodels/chart_state.dart';
 import 'package:catodo/features/presentation/views/stats/stats_screen.dart';
 import 'package:catodo/theme/app_theme.dart';
+import 'package:catodo/widgets/tds/tds_navigation.dart';
 
 import '../../support/test_stores.dart';
 
@@ -98,13 +99,18 @@ void main() {
       // 수 없어서, 우리 버튼이 거기 있으면 둘이 위아래로 겹쳐 보인다.
       await _pumpStats(tester);
 
-      for (final label in ['닫기', '캐릭터 꾸미기']) {
-        expect(
-          tester.getRect(find.bySemanticsLabel(label)).right,
-          lessThan(375 / 2),
-          reason: '$label 버튼은 왼쪽 절반 안에 있어야 한다',
-        );
-      }
+      final nav = tester.getRect(find.byType(TdsNavigation));
+
+      // 내비게이션 줄에 남는 건 닫기뿐이고, 그마저 왼쪽에 붙어 있다.
+      expect(tester.getRect(find.bySemanticsLabel('닫기')).right,
+          lessThan(375 / 2));
+
+      // 꾸미기는 오른쪽이지만 내비게이션 줄 아래(캐릭터 자리)로 내려가 있다.
+      expect(
+        tester.getRect(find.bySemanticsLabel('캐릭터 꾸미기')).top,
+        greaterThanOrEqualTo(nav.bottom),
+        reason: '꾸미기 칩은 토스 네비게이션 바 줄 아래에 있어야 한다',
+      );
     });
 
     testWidgets('일/주/월/년을 모두 골라도 레이아웃이 버틴다', (tester) async {
