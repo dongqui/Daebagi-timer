@@ -114,14 +114,24 @@
   </div>
 
   <script>
+    // 등장 연출 길이. 위 #boot 애니메이션과 같은 값이어야 한다.
+    var BOOT_RISE_MS = 700;
+
     // Dart 쪽에서 첫 프레임을 그린 뒤 호출한다 (lib/core/boot_screen.dart).
-    // 곧바로 지우지 않고 겹친 채로 흐려지게 해서, 폰트 렌더링 차이 같은
-    // 자잘한 어긋남이 눈에 띄지 않게 한다.
+    //
+    // 곧바로 지우지 않고 겹친 채로 흐려지게 해서, 폰트 렌더링 차이 같은 자잘한
+    // 어긋남이 눈에 띄지 않게 한다. 등장 연출이 아직 진행 중이면 그게 끝날 때까지
+    // 기다린다 — 올라오는 도중에 걷어내면 Dart 쪽 캐릭터는 이미 제자리에 있어서
+    // 한 번 튄다.
     window.hideBootScreen = function () {
       var el = document.getElementById('boot');
       if (!el) return;
-      el.style.opacity = '0';
-      setTimeout(function () { el.remove(); }, 240);
+
+      var remaining = Math.max(0, BOOT_RISE_MS - performance.now());
+      setTimeout(function () {
+        el.style.opacity = '0';
+        setTimeout(function () { el.remove(); }, 240);
+      }, remaining);
     };
   </script>
 

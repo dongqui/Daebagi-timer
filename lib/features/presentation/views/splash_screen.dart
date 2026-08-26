@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 
+import 'package:catodo/core/boot_screen.dart';
 import 'package:catodo/theme/tds_colors.dart';
 import 'package:catodo/theme/tds_metrics.dart';
 import 'package:catodo/theme/tds_typography.dart';
@@ -42,13 +43,18 @@ class _SplashScreenState extends State<SplashScreen>
     duration: const Duration(milliseconds: 700),
   );
 
-  /// 인트로를 최소한 이만큼은 보여준다.
+  /// 인트로 전체 길이. 화면이 처음 보이기 시작한 시점부터 잰다.
   ///
-  /// 웹에서는 `web/index.html`의 부트 화면이 같은 그림을 이미 한참 보여준 뒤라
-  /// 여기서 또 오래 붙잡으면 전체가 늘어진다. 넘어가는 티만 안 나면 된다.
-  static const _minimumDwell = kIsWeb
-      ? Duration(milliseconds: 500)
-      : Duration(milliseconds: 1800);
+  /// 웹에서는 Dart가 뜨기 전에 `web/index.html`의 부트 화면이 같은 그림을 이미
+  /// 보여주고 있다. 그래서 이 매니저가 마운트된 시점이 아니라 페이지를 연 시점을
+  /// 기준으로 재야, 부팅이 빠르든 느리든 인트로 길이가 같게 느껴진다.
+  static const _introTotal = Duration(milliseconds: 2000);
+
+  /// Dart 인트로가 화면에 최소한 머무는 시간.
+  ///
+  /// 부팅이 오래 걸려 [_introTotal]을 이미 넘겼더라도, 넘겨받자마자 사라지면
+  /// 크로스페이드가 끝나기도 전에 퇴장이 시작되어 어중간해 보인다.
+  static const _minimumOnScreen = Duration(milliseconds: 700);
 
   Timer? _dwellTimer;
   bool _dwellElapsed = false;
@@ -66,10 +72,14 @@ class _SplashScreenState extends State<SplashScreen>
       _intro.forward();
     }
 
-    _dwellTimer = Timer(_minimumDwell, () {
-      _dwellElapsed = true;
-      _maybeHandoff();
-    });
+    final remaining = _introTotal - bootElapsed();
+    _dwellTimer = Timer(
+      remaining < _minimumOnScreen ? _minimumOnScreen : remaining,
+      () {
+        _dwellElapsed = true;
+        _maybeHandoff();
+      },
+    );
   }
 
   @override
