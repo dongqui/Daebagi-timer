@@ -3,6 +3,14 @@ import { defineConfig } from "@apps-in-toss/web-framework/config";
 // 앱인토스 미니앱 배포 설정 (`ait build` / `ait deploy`가 읽는다).
 // appName은 앱인토스 콘솔에 등록한 이름과 일치해야 한다.
 // webBundleDir은 `npm run build:web`(= flutter build web --release) 산출물 경로다.
+//
+// 주의: 미니앱이 서비스되는 Origin은 @apps-in-toss/web-framework 버전에 묶여
+// 있다. 3.0.x는 `{appName}.web.tossmini.com`, 3.1.1부터는
+// `{appName}.apps.tossmini.com`이다. 버전을 올리면 Origin이 바뀌고, 그러면
+// localStorage·IndexedDB에 쌓인 기존 데이터가 새 Origin에서 보이지 않는다.
+// 출시 후 올릴 때는 SDK의 `Migration.getOriginStorage()`로 옛 Origin 데이터를
+// 읽어 병합해야 한다. (우리 주 저장 경로는 네이티브 브릿지라 영향이 덜하지만,
+// SDK 번들을 못 찾았을 때의 fallback은 localStorage다.)
 export default defineConfig({
   appName: "focuscope",
   brand: {
