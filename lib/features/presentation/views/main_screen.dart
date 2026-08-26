@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:catodo/core/navigation/app_back_binding.dart';
+import 'package:catodo/core/navigation/app_back_dispatcher.dart';
 import 'package:catodo/features/game/game_root.dart';
 import 'package:flame/game.dart';
 import 'package:catodo/features/game/game_overlay_manager.dart';
@@ -7,6 +9,7 @@ import 'package:catodo/features/presentation/views/overlays/home_overlay.dart';
 import 'package:catodo/features/presentation/views/overlays/focus_end_overlay.dart';
 import 'package:catodo/features/presentation/views/overlays/ready_overlay.dart';
 import 'package:catodo/features/presentation/views/overlays/focus_form_overlay.dart';
+import 'package:catodo/core/navigation/navigator_key.dart';
 
 class MainScreen extends StatelessWidget {
   final game = GameRoot();
@@ -15,13 +18,15 @@ class MainScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    AppBackBinding.ensureStarted(navigatorKey);
+
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) async {
         if (didPop) {
           return;
         }
-        return;
+        AppBackDispatcher.instance.handleBack();
       },
       child: Scaffold(
         body: SafeArea(

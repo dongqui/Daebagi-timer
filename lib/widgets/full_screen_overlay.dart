@@ -1,3 +1,4 @@
+import 'package:catodo/core/navigation/app_back_dispatcher.dart';
 import 'package:flutter/material.dart';
 
 class FullScreenOverlay extends StatefulWidget {
@@ -22,10 +23,17 @@ class _FullScreenOverlayState extends State<FullScreenOverlay>
   late Animation<double> _fadeAnimation;
   late Animation<double> _scaleAnimation;
   bool _isClosing = false;
+  late final bool Function() _backHandler;
 
   @override
   void initState() {
     super.initState();
+    _backHandler = () {
+      _handleClose();
+      return true;
+    };
+    AppBackDispatcher.instance.push(_backHandler);
+
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 550),
@@ -41,6 +49,7 @@ class _FullScreenOverlayState extends State<FullScreenOverlay>
 
   @override
   void dispose() {
+    AppBackDispatcher.instance.remove(_backHandler);
     _controller.dispose();
     super.dispose();
   }

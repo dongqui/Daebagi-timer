@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:catodo/core/init_db.dart';
+import 'package:catodo/core/navigation/navigator_key.dart';
 import 'features/presentation/views/splash_screen.dart';
 import 'features/presentation/views/main_screen.dart';
 import 'features/presentation/viewmodels/resource_version_state.dart';
 
-final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+export 'package:catodo/core/navigation/navigator_key.dart' show navigatorKey;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
