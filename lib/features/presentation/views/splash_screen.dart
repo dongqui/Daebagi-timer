@@ -48,7 +48,7 @@ class _SplashScreenState extends State<SplashScreen>
   ///
   /// `web/index.html`의 부트 화면은 토스 자체 로딩 화면에 가려 보이지 않으므로
   /// 계산에 넣지 않는다. 여기서 세는 시간이 사용자가 실제로 보는 시간이다.
-  static const _minimumDwell = Duration(seconds: 2);
+  static const _minimumDwell = Duration(seconds: 3);
 
   Timer? _dwellTimer;
   bool _dwellElapsed = false;

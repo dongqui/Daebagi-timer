@@ -121,7 +121,7 @@ void main() {
       expect(finished, isFalse, reason: '최소 노출 시간 전에는 인트로가 유지돼야 한다');
 
       // 최소 노출 시간 + 퇴장 연출까지 넉넉히 흘려보낸다.
-      await tester.pump(const Duration(milliseconds: 1600));
+      await tester.pump(const Duration(milliseconds: 2600));
       await tester.pump(const Duration(milliseconds: 800));
 
       expect(finished, isTrue);
