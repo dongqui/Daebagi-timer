@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:catodo/core/utils/duration_format.dart';
 import 'package:catodo/features/data/models/focus_session_model.dart';
+import 'package:catodo/features/presentation/viewmodels/focus_end_alert.dart';
 import 'package:catodo/features/presentation/viewmodels/form_state.dart';
 import 'package:catodo/features/presentation/viewmodels/timer_state.dart';
 import 'package:catodo/theme/tds_colors.dart';
@@ -29,6 +30,13 @@ class _FocusEndOverlayState extends State<FocusEndOverlay> {
   @override
   void initState() {
     super.initState();
+
+    // 목표를 채워서 저절로 끝났을 때만 울린다. 직접 그만둔 사람은 화면을
+    // 보고 있으니 알릴 이유가 없다.
+    if (TimerManager.instance.reachedGoal) {
+      FocusEndAlert.instance.fire();
+    }
+
     _saveSession();
   }
 

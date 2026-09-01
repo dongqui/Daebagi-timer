@@ -44,6 +44,10 @@ class TimerManager {
   late TimerStatus _prevStatus = TimerStatus.idle;
   bool openSettingsOnIdle = false;
 
+  /// 직전 종료가 목표 시간을 채워서 일어난 것인지. 사용자가 직접 그만둔
+  /// 경우와 구분한다 — 알림(소리·진동)은 채웠을 때만 울려야 한다.
+  bool _reachedGoal = false;
+
   final List<void Function(TimerState)> _listeners = [];
   final List<void Function(TimerStatus)> _listenersToStatus = [];
 
@@ -55,6 +59,8 @@ class TimerManager {
         );
 
   TimerState get state => _state;
+
+  bool get reachedGoal => _reachedGoal;
 
   void addListener(void Function(TimerState) listener) {
     _listeners.add(listener);
@@ -94,7 +100,8 @@ class TimerManager {
     _updateState(_state.copyWith(status: TimerStatus.ready));
   }
 
-  void finish() {
+  void finish({bool reachedGoal = false}) {
+    _reachedGoal = reachedGoal;
     _timer.cancel();
     _updateState(_state.copyWith(
       status: TimerStatus.end,
@@ -131,7 +138,7 @@ class TimerManager {
     final newfocussedTime = _state.focussedTime + 1;
     _updateState(_state.copyWith(focussedTime: newfocussedTime));
     if (_state.goalTime >= 0 && newfocussedTime >= _state.goalTime) {
-      finish();
+      finish(reachedGoal: true);
     }
   }
 

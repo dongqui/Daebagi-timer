@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:catodo/core/utils/duration_format.dart';
 import 'package:catodo/features/presentation/viewmodels/audio_controller.dart';
 import 'package:catodo/features/presentation/viewmodels/audio_state.dart';
+import 'package:catodo/features/presentation/viewmodels/focus_end_alert.dart';
 import 'package:catodo/features/presentation/viewmodels/form_state.dart';
 import 'package:catodo/features/presentation/viewmodels/timer_state.dart';
 import 'package:catodo/features/presentation/views/audio_box.dart';
@@ -62,6 +63,10 @@ class _TimerOverlayState extends State<TimerOverlay> {
   /// 안 켠 사람도 타이머 시작 직후 화면이 끊겼다. 나머지는 [_scheduleWarmUp]이
   /// 잠잠해진 뒤에 배경에서 채운다.
   Future<void> _initAudio() async {
+    // 종료음은 화면이 사라지는 순간 울려야 해서 미리 만들어 둔다. 몇십 KB짜리라
+    // 백색소음보다 먼저 챙겨도 시작이 늦어지지 않는다.
+    unawaited(FocusEndAlert.instance.preload());
+
     await AudioManager.instance.getAudioList();
     if (!mounted) return;
 
