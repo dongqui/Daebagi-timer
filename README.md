@@ -11,47 +11,51 @@ https://minion.toss.im/RXaUqzfm (토스앱 필요)
 
 - 앱: Flutter 3.29, Dart, Flame(게임 레이어)
 - 저장소: 앱인토스 네이티브 Storage 브릿지
+- 상태 관리: 상태 관리 라이브러리 사용 시 Flame GameRoot 위젯이 재렌더링되는 문제로, 옵저버 패턴 직접 구현.
+- 레이어 분리: 프레젠테이션 / 상태 매니저 / 데이터. 관심사 분리로 코드 파악이 쉽고, 실제로 네이티브 앱에서 앱인토스(웹)로 피보팅 시 저장소 계층만 교체
 
 ## 구조
 
 ```mermaid
-flowchart LR
-  subgraph UI["Flutter 오버레이"]
+flowchart TB
+  subgraph Pres["프레젠테이션 (오버레이)"]
+    direction LR
     Home["홈"]
-    Form["집중 설정"]
+    Form["설정"]
     Timer["타이머"]
-    End["집중 종료"]
-    Stats["통계 · 설정"]
+    End["종료"]
+    Stats["통계"]
   end
-  subgraph Managers["상태 매니저 (싱글턴 · Observer)"]
+
+  subgraph Managers["상태 매니저 (Observer)"]
+    direction LR
     TM["TimerManager"]
     CM["CharacterManager"]
-    DM["DiscoveryManager"]
     FM["FormManager"]
     ChM["ChartManager"]
   end
-  subgraph Game["Flame · GameRoot"]
-    GEM["GameEventManager"]
-    HW["HomeWorld"]
-    TW["TimerWorld"]
-  end
-  subgraph Data["데이터"]
-    Repo["Repository"]
-    DS["DataSource"]
-    Doc["DocumentStore<br/>JSON 컬렉션 · 메모리 캐시"]
-    KV["KeyValueStore"]
-  end
-  Toss[("앱인토스 Storage<br/>(네이티브 브릿지)")]
-  SP[("shared_preferences")]
 
-  UI -- "메서드 호출" --> Managers
-  Managers -. "notifyListeners" .-> UI
-  Managers -. "notifyListeners" .-> GEM
-  GEM --> HW & TW
-  GEM -- "overlays.add" --> UI
-  Managers --> Repo --> DS --> Doc --> KV
+  subgraph Game["Flame · GameRoot"]
+    direction TB
+    GEM["GameEventManager"] --> OM["GameOverlayManager<br/>오버레이 전환"]
+    GEM --> WM["GameWorldManager"]
+    WM --> HW["HomeWorld"]
+    WM --> TW["TimerWorld"]
+  end
+
+  subgraph Data["데이터"]
+    direction TB
+    Repo["Repository"] --> DS["DataSource"] --> Doc["DocumentStore<br/>JSON 컬렉션 · 메모리 캐시"] --> KV["KeyValueStore"]
+  end
+
+  Toss[("앱인토스 Storage<br/>네이티브 브릿지")]
+
+  %% 보이지 않는 선. 이게 있어야 매니저 박스가 가로로 놓인다.
+  Home ~~~ TM
+  Pres <-- "메서드 호출 · notifyListeners" --> Managers
+  Managers -. "state 변경" .-> GEM
+  Managers --> Repo
   KV --> Toss
-  KV --> SP
 ```
 
 ### 폴더 구조
